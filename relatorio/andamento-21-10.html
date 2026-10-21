@@ -74,14 +74,7 @@ experimento (E1), com as evidências obtidas.</p>
 
 <h1>2. Pesquisa e questionário</h1>
 <p>A equipe redigiu uma primeira versão das respostas às questões comuns Q1 a Q14 e às questões
-específicas S1 a S4. Essas respostas serão revisadas e passarão a apontar para os experimentos que
-as sustentam (por exemplo, Q5 e o E3, Q6 e o E4, Q11 e o E6). Pontos já identificados para revisão:</p>
-<ul>
-  <li>a comunicação entre servidores autoritativos segue o modelo primário–secundário, e não peer-to-peer;</li>
-  <li>a resolução hierárquica (raiz, TLD e autoritativo) e o papel do cache em cada etapa;</li>
-  <li>o serial do registro SOA como mecanismo de ordenação de versões, relacionado a relógios lógicos (RFC 1982);</li>
-  <li>a posição do DNS diante de partições de rede, que será sustentada pelo resultado do E6.</li>
-</ul>
+específicas S1 a S4. As respostas serão revisadas com base nos resultados dos experimentos.</p>
 <p>Fontes primárias em uso: Mockapetris e Dunlap (1988); RFC 1034, 1035, 1982, 1995, 1996, 2136 e 2308;
 manual de referência do BIND 9; documentação do CoreDNS.</p>
 
@@ -112,12 +105,8 @@ da zona, e uma rede de clientes, usada para as consultas.</p>
 <p>A zona <code>sd.lab</code> usa os valores do roteiro: serial 2026101401, refresh 30 s, retry 10 s,
 expire 300 s, TTL negativo 20 s e TTL padrão de 60 s. Os arquivos do roteiro foram completados e
 validados com <code>named-checkconf</code>, <code>named-checkzone</code> e <code>docker compose config</code>.
-Foram feitos três ajustes:</p>
-<ul>
-  <li>geração da chave do <code>rndc</code> na imagem, sem a qual o comando <code>rndc reload</code> do roteiro não funciona;</li>
-  <li>envio de NOTIFY apenas pela rede interna (<code>notify explicit</code>), para que toda a replicação passe por ela, condição necessária para o experimento de partição (E6);</li>
-  <li>nome de projeto fixo (<code>sdm2dns</code>), para que as redes tenham sempre o mesmo nome.</li>
-</ul>
+Para que toda a replicação passe pela rede interna, o primário envia NOTIFY somente pelos endereços
+internos dos secundários.</p>
 <p>Os arquivos de configuração, os scripts e as saídas brutas estão versionados em um repositório Git.</p>
 
 <h1>4. Experimento E1 — Subida e topologia</h1>
@@ -179,10 +168,7 @@ uma versão nova (RFC 1996), e a cópia dos dados acontece na transferência de 
 foi completa (AXFR), porque um secundário sem cópia anterior não tem a partir de que versão pedir uma
 transferência incremental (RFC 1995). O serial do SOA identifica a versão da zona, e o mesmo serial nos três
 servidores é a evidência de que convergiram.</p>
-<p>Um detalhe não previsto: o ns2 transferiu a zona ao receber o NOTIFY, enquanto o ns3 transferiu cerca de
-0,5 s depois pela sua própria verificação inicial, e o NOTIFY chegou a ele quando a zona já estava
-atualizada. A diferença entre os dois caminhos (NOTIFY e verificação periódica pelo refresh) será
-medida no E3.</p>
+
 
 <h1>5. Próximas etapas</h1>
 <ul>
