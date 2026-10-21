@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Trabalho M2 — Desenvolvimento em 21/10/2026</title>
+<style>
+  /* Padrão do documento da equipe (Google Docs): A4, margens de 1 pol., Arial 11, preto. */
+  @page { size: A4; margin: 25.4mm; }
+  @page capa { margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.15; color: #000; background: #fff; }
+
+  .capa { page: capa; position: relative; width: 210mm; height: 297mm; text-align: center; font-weight: bold; font-size: 12pt; break-after: page; }
+  .capa > * { position: absolute; left: 0; right: 0; margin: 0; }
+  .capa p { text-align: center; }
+  .capa img { width: 27mm; left: 50%; margin-left: -13.5mm; top: 30mm; }
+  .capa .univ { top: 57mm; line-height: 2; }
+  .capa .nomes { top: 102mm; line-height: 2.4; }
+  .capa .titulo { top: 172mm; line-height: 2.4; }
+  .capa .local { top: 230mm; line-height: 2.4; }
+
+  .sumario { break-after: page; padding-top: 30mm; }
+  .sumario p { margin: 0 0 3pt; }
+  .sumario .n2 { padding-left: 9mm; }
+
+  h1 { font-size: 15pt; font-weight: normal; margin: 0 0 8pt; break-after: avoid; }
+  h1:not(:first-of-type) { margin-top: 20pt; }
+  h2 { font-size: 13pt; font-weight: normal; margin: 14pt 0 6pt; break-after: avoid; }
+  p { margin: 0 0 8pt; text-align: justify; }
+  ul, ol { margin: 0 0 8pt; padding-left: 7mm; }
+  li { margin-bottom: 3pt; text-align: justify; }
+  code { font-family: "Courier New", Courier, monospace; font-size: 10pt; }
+
+  table { width: 100%; border-collapse: collapse; margin: 4pt 0 6pt; font-size: 10pt; break-inside: avoid; }
+  th, td { border: 0.75pt solid #000; padding: 3pt 5pt; text-align: left; vertical-align: top; }
+  th { font-weight: bold; }
+
+  pre { font-family: "Courier New", Courier, monospace; font-size: 8.6pt; line-height: 1.3; border: 0.75pt solid #000; padding: 6pt 7pt; margin: 4pt 0 4pt; white-space: pre-wrap; word-break: break-all; break-inside: avoid; }
+  figure { margin: 6pt 0 10pt; text-align: center; break-inside: avoid; }
+  figure img { width: 100%; }
+  .legenda { font-size: 10pt; text-align: center; margin: 2pt 0 10pt; }
+  .fonte { font-size: 9pt; text-align: center; margin: 0 0 10pt; }
+</style>
+</head>
+<body>
+
+<section class="capa">
+  <img src="assets/univali.png" alt="UNIVALI">
+  <p class="univ">UNIVERSIDADE DO VALE DO ITAJAÍ<br>ESCOLA POLITÉCNICA</p>
+  <p class="nomes">GUILHERME MOHR DOS SANTOS<br>ARTHUR RODRIGUES HAWRELIUK</p>
+  <p class="titulo">DNS<br>Descoberta de serviços (cloud native)<br><span style="font-weight:normal">Desenvolvimento do Trabalho M2 — 21/10/2026</span></p>
+  <p class="local">ITAJAÍ<br>2026</p>
+</section>
+
+<section class="sumario">
+  <p>1. Identificação e objetivo</p>
+  <p>2. Pesquisa e questionário</p>
+  <p>3. Ambiente de testes</p>
+  <p>4. Experimento E1 — Subida e topologia</p>
+  <p class="n2">4.1. Previsão</p>
+  <p class="n2">4.2. Execução e evidências</p>
+  <p class="n2">4.3. Análise</p>
+  <p>5. Próximas etapas</p>
+</section>
+
+<h1>1. Identificação e objetivo</h1>
+<p><b>Disciplina:</b> Sistemas Distribuídos. <b>Professor:</b> Ramices dos Santos Silva.<br>
+<b>Equipe:</b> Guilherme Mohr dos Santos e Arthur Rodrigues Hawreliuk.<br>
+<b>Tema:</b> T1 — Sistema de nomes distribuído (DNS), com BIND 9 como sistema de referência.<br>
+<b>Ênfase:</b> D — Descoberta de serviços (cloud native), com CoreDNS no experimento E9.</p>
+<p>Este documento registra o que a equipe desenvolveu na aula de 21/10/2026: a pesquisa e o rascunho do
+questionário, a montagem do laboratório descrito na seção 5.2 do roteiro e a execução do primeiro
+experimento (E1), com as evidências obtidas.</p>
+
+<h1>2. Pesquisa e questionário</h1>
+<p>A equipe redigiu uma primeira versão das respostas às questões comuns Q1 a Q14 e às questões
+específicas S1 a S4. Essas respostas serão revisadas e passarão a apontar para os experimentos que
+as sustentam (por exemplo, Q5 e o E3, Q6 e o E4, Q11 e o E6). Pontos já identificados para revisão:</p>
+<ul>
+  <li>a comunicação entre servidores autoritativos segue o modelo primário–secundário, e não peer-to-peer;</li>
+  <li>a resolução hierárquica (raiz, TLD e autoritativo) e o papel do cache em cada etapa;</li>
+  <li>o serial do registro SOA como mecanismo de ordenação de versões, relacionado a relógios lógicos (RFC 1982);</li>
+  <li>a posição do DNS diante de partições de rede, que será sustentada pelo resultado do E6.</li>
+</ul>
+<p>Fontes primárias em uso: Mockapetris e Dunlap (1988); RFC 1034, 1035, 1982, 1995, 1996, 2136 e 2308;
+manual de referência do BIND 9; documentação do CoreDNS.</p>
+
+<h1>3. Ambiente de testes</h1>
+<p>O laboratório roda inteiramente em contêineres leves com Docker Compose, sem máquinas virtuais
+adicionais, em um MacBook Air M3 (16 GB, macOS 26.4.1) com Docker Desktop 29.4.3 e Compose v5.1.3.
+Todos os nós usam a mesma imagem, construída pela equipe a partir do Alpine Linux 3.20 com o
+BIND 9.18.49 (39,1 MB). A topologia segue o roteiro: uma rede interna, usada só para a replicação
+da zona, e uma rede de clientes, usada para as consultas.</p>
+
+<table>
+  <tr><th>Nó</th><th>Função</th><th>Rede interna</th><th>Rede de clientes</th></tr>
+  <tr><td>ns1</td><td>Primário autoritativo da zona <code>sd.lab</code></td><td>172.30.0.11</td><td>172.31.0.11</td></tr>
+  <tr><td>ns2</td><td>Secundário autoritativo</td><td>172.30.0.12</td><td>172.31.0.12</td></tr>
+  <tr><td>ns3</td><td>Secundário autoritativo</td><td>172.30.0.13</td><td>172.31.0.13</td></tr>
+  <tr><td>resolvedor</td><td>Recursivo com cache</td><td>—</td><td>172.31.0.53</td></tr>
+  <tr><td>cliente</td><td>Executa as consultas (<code>dig</code>)</td><td>—</td><td>172.31.0.100</td></tr>
+</table>
+
+<div style="break-inside: avoid">
+<p class="legenda">Figura 1 — Topologia do laboratório DNS</p>
+<figure>
+  <img src="../diagramas/topologia-pb.png" alt="Topologia do laboratório">
+</figure>
+<p class="fonte">Fonte: elaborado pelos autores (2026).</p>
+</div>
+
+<p>A zona <code>sd.lab</code> usa os valores do roteiro: serial 2026101401, refresh 30 s, retry 10 s,
+expire 300 s, TTL negativo 20 s e TTL padrão de 60 s. Os arquivos do roteiro foram completados e
+validados com <code>named-checkconf</code>, <code>named-checkzone</code> e <code>docker compose config</code>.
+Foram feitos três ajustes:</p>
+<ul>
+  <li>geração da chave do <code>rndc</code> na imagem, sem a qual o comando <code>rndc reload</code> do roteiro não funciona;</li>
+  <li>envio de NOTIFY apenas pela rede interna (<code>notify explicit</code>), para que toda a replicação passe por ela, condição necessária para o experimento de partição (E6);</li>
+  <li>nome de projeto fixo (<code>sdm2dns</code>), para que as redes tenham sempre o mesmo nome.</li>
+</ul>
+<p>Os arquivos de configuração, os scripts e as saídas brutas estão versionados em um repositório Git.</p>
+
+<h1>4. Experimento E1 — Subida e topologia</h1>
+<h2>4.1. Previsão</h2>
+<p>Registrada antes da execução: os cinco contêineres sobem; os secundários, que começam sem cópia da
+zona, recebem do primário uma transferência completa (AXFR) pela rede interna; os três autoritativos
+passam a responder o mesmo serial, com a flag <code>aa</code> (resposta autoritativa); o resolvedor
+responde com a flag <code>ra</code> (recursão disponível) e sem <code>aa</code>.</p>
+
+<h2>4.2. Execução e evidências</h2>
+<p>Executado em 21/10/2026, às 19h34. Estado dos contêineres logo após a subida:</p>
+<pre>$ docker compose ps
+NAME         SERVICE      STATUS
+cliente      cliente      Up 5 seconds
+ns1          ns1          Up 5 seconds
+ns2          ns2          Up 5 seconds
+ns3          ns3          Up 5 seconds
+resolvedor   resolvedor   Up 5 seconds</pre>
+
+<p>Log do secundário ns2 (trecho; data e prefixo do contêiner omitidos): o NOTIFY do primário chega pelo endereço interno e dispara a transferência:</p>
+<pre>$ docker compose logs ns2 | grep -i transfer
+22:34:55.411 client 172.30.0.11#39939: received notify for zone 'sd.lab'
+22:34:55.412 zone sd.lab/IN: Transfer started.
+22:34:55.412 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected [...]
+22:34:55.414 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed:
+             1 messages, 9 records, 224 bytes, 0.002 secs (serial 2026101401)</pre>
+<p>No primário, o mesmo evento aparece como <code>AXFR started</code> e <code>AXFR ended</code> para os
+clientes 172.30.0.12 (ns2) e 172.30.0.13 (ns3).</p>
+
+<p>Consulta do registro SOA diretamente em cada servidor autoritativo:</p>
+<pre>$ for s in 11 12 13; do docker exec cliente dig @172.31.0.$s sd.lab SOA +short; done
+ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20
+ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20
+ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20</pre>
+
+<p>Mesma consulta a um nome, direto no autoritativo e pelo resolvedor:</p>
+<pre>$ docker exec cliente dig @172.31.0.11 app.sd.lab +norecurse
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 4
+app.sd.lab.     60  IN  A  10.0.0.1
+$ docker exec cliente dig @172.31.0.53 app.sd.lab
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+app.sd.lab.     60  IN  A  10.0.0.1</pre>
+
+<table>
+  <tr><th>Previsão</th><th>Resultado observado</th></tr>
+  <tr><td>Cinco contêineres em execução</td><td>Confirmado, com os endereços da tabela da seção 3</td></tr>
+  <tr><td>Secundários recebem AXFR pela rede interna</td><td>Confirmado nos logs do primário e dos dois secundários (9 registros, 224 bytes)</td></tr>
+  <tr><td>Mesmo serial nos três autoritativos, com <code>aa</code></td><td>Confirmado: 2026101401 nos três</td></tr>
+  <tr><td>Resolvedor com <code>ra</code> e sem <code>aa</code></td><td>Confirmado</td></tr>
+</table>
+<p>Uso de memória medido com <code>docker stats</code>: cerca de 26 MiB por servidor BIND, aproximadamente
+104 MiB no total, compatível com os cerca de 100 MB indicados no roteiro.</p>
+
+<h2>4.3. Análise</h2>
+<p>O E1 confirma a arquitetura primário–secundário. O ns1 é o coordenador, definido de forma estática na
+configuração, e é o único que aceita alterações na zona. O ns2 e o ns3 são réplicas somente leitura que
+também respondem com autoridade. A replicação é iniciada pelos secundários: o NOTIFY apenas avisa que há
+uma versão nova (RFC 1996), e a cópia dos dados acontece na transferência de zona. A primeira sincronização
+foi completa (AXFR), porque um secundário sem cópia anterior não tem a partir de que versão pedir uma
+transferência incremental (RFC 1995). O serial do SOA identifica a versão da zona, e o mesmo serial nos três
+servidores é a evidência de que convergiram.</p>
+<p>Um detalhe não previsto: o ns2 transferiu a zona ao receber o NOTIFY, enquanto o ns3 transferiu cerca de
+0,5 s depois pela sua própria verificação inicial, e o NOTIFY chegou a ele quando a zona já estava
+atualizada. A diferença entre os dois caminhos (NOTIFY e verificação periódica pelo refresh) será
+medida no E3.</p>
+
+<h1>5. Próximas etapas</h1>
+<ul>
+  <li><b>E2 e E3:</b> caminho de uma leitura e de uma escrita; tempo de propagação do primário para os
+  secundários com e sem NOTIFY, com cinco medições por cenário, média e desvio padrão.</li>
+  <li><b>E4:</b> cache, TTL e cache negativo no resolvedor; janela de leitura desatualizada.</li>
+  <li><b>E5 a E7:</b> falha de um e de dois servidores; partição do ns3 apenas na rede interna; recuperação.</li>
+  <li><b>E8:</b> serial do SOA como mecanismo de ordenação, incluindo a publicação de um serial menor.</li>
+  <li><b>E9 (ênfase D):</b> descoberta de serviços com CoreDNS, registro e remoção de instâncias, e
+  efeito do TTL sobre a carga e sobre o tempo até o cliente deixar de usar uma instância removida.</li>
+  <li>Revisão do questionário com base nas evidências, redação do relatório e preparação da apresentação
+  de 28/10.</li>
+</ul>
+
+</body>
+</html>
