@@ -45,6 +45,33 @@ docker exec ns1 rndc zonestatus sd.lab
 
 ![Topologia](diagramas/topologia.png)
 
+## Pesquisa
+- Rascunho das respostas Q1–Q14 e S1 já iniciado pela equipe; S2–S4 pendentes.
+- Pontos que serão revisados com base nos experimentos: comunicação entre servidores (primário-secundário,
+  não P2P), resolução hierárquica (raiz → TLD → autoritativo), serial do SOA como relógio lógico (RFC 1982),
+  AXFR/IXFR/NOTIFY (RFC 1995/1996), cache negativo (RFC 2308) e a posição diante de partições (sustentada pelo E6).
+- Fontes primárias: Mockapetris e Dunlap (1988); RFCs 1034, 1035, 1982, 1995, 1996, 2136, 2308;
+  BIND 9 ARM; documentação do CoreDNS (ênfase D).
+
+## Estrutura do relatório (seção 10 do roteiro)
+Seções previstas: (1) Identificação; (2) Resumo; (3) Fundamentação (artigo seminal, arquitetura com diagrama próprio);
+(4) Ambiente e reprodutibilidade (já levantado acima); (5) Experimentos E1–E9 (E1 concluído); (6) Respostas Q1–Q14;
+(7) Respostas S1–S4; (8) Quadro-síntese; (9) Limitações e ameaças à validade; (10) Papel de cada integrante;
+(11) Declaração de uso de IA generativa; (12) Referências (ABNT).
+
+## Plano da apresentação (seção 11 do roteiro, 10 min + 5 min de arguição)
+
+| Bloco | Conteúdo | Tempo | Responsável |
+|---|---|---|---|
+| 1 | Problema, uso real e artigo seminal | 1 min | _[a definir]_ |
+| 2 | Arquitetura e papéis (diagrama acima) | 2 min | _[a definir]_ |
+| 3 | Demonstração: E2, E3, E5/E6, E7 | 4 min | _[a definir]_ |
+| 4 | Ênfase D (E9): descoberta de serviços com CoreDNS | 2 min | _[a definir]_ |
+| 5 | Quadro-síntese | 1 min | _[a definir]_ |
+
+O laboratório sobe em segundos e usa ~104 MiB, o que viabiliza a demonstração ao vivo com o cluster
+já em execução; será gravado um vídeo de contingência.
+
 ## Próximos passos (ainda não executados)
 - E2: caminho de leitura (resolvedor x autoritativo, query log) e de escrita (NOTIFY + transferência).
 - E3: tempo de propagação com e sem NOTIFY (5 repetições cada, média e desvio padrão, script com relógio monotônico).
