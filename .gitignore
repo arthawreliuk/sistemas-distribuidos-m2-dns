@@ -1,0 +1,12 @@
+.DS_Store
+*.swp
+*~
+__pycache__/
+*.pyc
+.venv/
+# journals/arquivos gerados pelo BIND caso apareçam no volume do primário
+zonas/*.jnl
+zonas/*.jbk
+# vídeos brutos (grandes) da apresentação
+apresentacao/*.mov
+apresentacao/*.mp4

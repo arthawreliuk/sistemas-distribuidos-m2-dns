@@ -1,0 +1,50 @@
+# Laboratório DNS (BIND 9) — topologia da seção 5.2 do roteiro.
+# Nome de projeto fixo: as redes ficam "sdm2dns_interna" e "sdm2dns_clientes"
+# independentemente do nome da pasta (necessário para o E6).
+name: sdm2dns
+
+x-bind: &bind
+  build: .
+  image: sd-bind
+  mem_limit: 128m
+
+services:
+  ns1:                                  # primário autoritativo
+    <<: *bind
+    container_name: ns1
+    hostname: ns1
+    volumes: ["./ns1/named.conf:/etc/bind/named.conf:ro", "./zonas:/var/lib/bind"]
+    networks: {interna: {ipv4_address: 172.30.0.11}, clientes: {ipv4_address: 172.31.0.11}}
+
+  ns2:                                  # secundário autoritativo
+    <<: *bind
+    container_name: ns2
+    hostname: ns2
+    volumes: ["./ns2/named.conf:/etc/bind/named.conf:ro"]
+    networks: {interna: {ipv4_address: 172.30.0.12}, clientes: {ipv4_address: 172.31.0.12}}
+
+  ns3:                                  # secundário autoritativo
+    <<: *bind
+    container_name: ns3
+    hostname: ns3
+    volumes: ["./ns3/named.conf:/etc/bind/named.conf:ro"]
+    networks: {interna: {ipv4_address: 172.30.0.13}, clientes: {ipv4_address: 172.31.0.13}}
+
+  resolvedor:                           # recursivo com cache
+    <<: *bind
+    container_name: resolvedor
+    hostname: resolvedor
+    volumes: ["./resolvedor/named.conf:/etc/bind/named.conf:ro"]
+    networks: {clientes: {ipv4_address: 172.31.0.53}}
+
+  cliente:                              # mesma imagem, só para usar o dig
+    <<: *bind
+    container_name: cliente
+    hostname: cliente
+    mem_limit: 32m
+    command: ["sleep", "infinity"]
+    networks: {clientes: {ipv4_address: 172.31.0.100}}
+
+networks:
+  interna:  {ipam: {config: [{subnet: 172.30.0.0/24}]}}
+  clientes: {ipam: {config: [{subnet: 172.31.0.0/24}]}}
