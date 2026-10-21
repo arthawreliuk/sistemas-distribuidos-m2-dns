@@ -1,0 +1,148 @@
+
+===== Data/hora do host =====
+Wed Oct 21 19:34:54 -03 2026
+
+===== Versões =====
+Docker version 29.4.3, build 055a478
+Docker Compose version v5.1.3
+
+===== docker compose up -d =====
+ Network sdm2dns_clientes Creating 
+ Network sdm2dns_clientes Created 
+ Network sdm2dns_interna Creating 
+ Network sdm2dns_interna Created 
+ Container resolvedor Creating 
+ Container ns3 Creating 
+ Container ns2 Creating 
+ Container ns1 Creating 
+ Container cliente Creating 
+ Container cliente Created 
+ Container resolvedor Created 
+ Container ns2 Created 
+ Container ns1 Created 
+ Container ns3 Created 
+ Container ns2 Starting 
+ Container ns3 Starting 
+ Container ns1 Starting 
+ Container cliente Starting 
+ Container resolvedor Starting 
+ Container cliente Started 
+ Container resolvedor Started 
+ Container ns3 Started 
+ Container ns1 Started 
+ Container ns2 Started 
+aguardando 5 s para as transferências iniciais...
+
+===== docker compose ps =====
+NAME         SERVICE      STATUS
+cliente      cliente      Up 5 seconds
+ns1          ns1          Up 5 seconds
+ns2          ns2          Up 5 seconds
+ns3          ns3          Up 5 seconds
+resolvedor   resolvedor   Up 5 seconds
+
+===== Redes e endereços =====
+sdm2dns_interna 172.30.0.0/24
+  ns2 172.30.0.12/24
+  ns1 172.30.0.11/24
+  ns3 172.30.0.13/24
+sdm2dns_clientes 172.31.0.0/24
+  resolvedor 172.31.0.53/24
+  ns2 172.31.0.12/24
+  ns1 172.31.0.11/24
+  cliente 172.31.0.100/24
+  ns3 172.31.0.13/24
+
+===== Logs do ns1 (carga da zona / NOTIFY) =====
+ns1  | 21-Oct-2026 22:34:55.362 running on Linux aarch64 6.12.76-linuxkit #1 SMP Thu Apr 30 11:19:05 UTC 2026
+ns1  | 21-Oct-2026 22:34:55.362 running as: named -g -u named -c /etc/bind/named.conf
+ns1  | 21-Oct-2026 22:34:55.400 managed-keys-zone: loaded serial 0
+ns1  | 21-Oct-2026 22:34:55.401 zone sd.lab/IN: loaded serial 2026101401
+ns1  | 21-Oct-2026 22:34:55.401 zone sd.lab/IN: sending notifies (serial 2026101401)
+ns1  | 21-Oct-2026 22:34:55.405 running
+ns1  | 21-Oct-2026 22:34:55.412 client @0xffffa1ddb340 172.30.0.12#44321 (sd.lab): transfer of 'sd.lab/IN': AXFR started (serial 2026101401)
+ns1  | 21-Oct-2026 22:34:55.412 client @0xffffa1ddb340 172.30.0.12#44321 (sd.lab): transfer of 'sd.lab/IN': AXFR ended: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026101401)
+ns1  | 21-Oct-2026 22:34:55.892 client @0xffffa1de6170 172.30.0.13#41145 (sd.lab): transfer of 'sd.lab/IN': AXFR started (serial 2026101401)
+ns1  | 21-Oct-2026 22:34:55.892 client @0xffffa1de6170 172.30.0.13#41145 (sd.lab): transfer of 'sd.lab/IN': AXFR ended: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026101401)
+
+===== Logs de transferência do ns2 =====
+ns2  | 21-Oct-2026 22:34:55.411 client @0xffff9df31120 172.30.0.11#39939: received notify for zone 'sd.lab'
+ns2  | 21-Oct-2026 22:34:55.411 zone sd.lab/IN: notify from 172.30.0.11#39939: no serial
+ns2  | 21-Oct-2026 22:34:55.412 zone sd.lab/IN: Transfer started.
+ns2  | 21-Oct-2026 22:34:55.412 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+ns2  | 21-Oct-2026 22:34:55.413 zone sd.lab/IN: transferred serial 2026101401
+ns2  | 21-Oct-2026 22:34:55.414 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+ns2  | 21-Oct-2026 22:34:55.414 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.002 secs (112000 bytes/sec) (serial 2026101401)
+
+===== Logs de transferência do ns3 =====
+ns3  | 21-Oct-2026 22:34:55.892 zone sd.lab/IN: Transfer started.
+ns3  | 21-Oct-2026 22:34:55.892 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+ns3  | 21-Oct-2026 22:34:55.892 zone sd.lab/IN: transferred serial 2026101401
+ns3  | 21-Oct-2026 22:34:55.892 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+ns3  | 21-Oct-2026 22:34:55.892 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026101401)
+ns3  | 21-Oct-2026 22:34:55.901 client @0xffff7e00e380 172.30.0.11#56180: received notify for zone 'sd.lab'
+ns3  | 21-Oct-2026 22:34:55.901 zone sd.lab/IN: notify from 172.30.0.11#56180: zone is up to date
+
+===== SOA nos três autoritativos (consulta direta, rede de clientes) =====
+172.31.0.11 -> ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20
+172.31.0.12 -> ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20
+172.31.0.13 -> ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20
+
+===== Flags da resposta SOA de cada autoritativo (+norecurse) =====
+172.31.0.11 -> ;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 4
+172.31.0.12 -> ;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 4
+172.31.0.13 -> ;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 4
+
+===== app.sd.lab: autoritativo direto x resolvedor =====
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 4
+app.sd.lab.		60	IN	A	10.0.0.1
+;; SERVER: 172.31.0.11#53(172.31.0.11) (UDP)
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+app.sd.lab.		60	IN	A	10.0.0.1
+;; SERVER: 172.31.0.53#53(172.31.0.53) (UDP)
+
+===== rndc status (canal de controle) =====
+--- ns1
+version: BIND 9.18.49 (Extended Support Version) <id:cd4a53b>
+number of zones: 2 (0 automatic)
+server is up and running
+--- ns2
+version: BIND 9.18.49 (Extended Support Version) <id:cd4a53b>
+number of zones: 2 (0 automatic)
+server is up and running
+--- ns3
+version: BIND 9.18.49 (Extended Support Version) <id:cd4a53b>
+number of zones: 2 (0 automatic)
+server is up and running
+--- resolvedor
+version: BIND 9.18.49 (Extended Support Version) <id:cd4a53b>
+number of zones: 101 (100 automatic)
+server is up and running
+
+===== rndc zonestatus sd.lab nos autoritativos =====
+--- ns1
+type: primary
+files: /var/lib/bind/db.sd.lab
+serial: 2026101401
+--- ns2
+type: secondary
+files: db.sd.lab
+serial: 2026101401
+next refresh: Wed, 21 Oct 2026 22:35:22 GMT
+expires: Wed, 21 Oct 2026 22:39:55 GMT
+--- ns3
+type: secondary
+files: db.sd.lab
+serial: 2026101401
+next refresh: Wed, 21 Oct 2026 22:35:24 GMT
+expires: Wed, 21 Oct 2026 22:39:55 GMT
+
+===== Uso de memória =====
+NAME         MEM USAGE / LIMIT
+ns1          25.86MiB / 128MiB
+ns2          25.98MiB / 128MiB
+ns3          25.98MiB / 128MiB
+resolvedor   25.93MiB / 128MiB
+cliente      588KiB / 32MiB
+
+Evidências gravadas em evidencias/e1/e1-20261021-193454.txt
