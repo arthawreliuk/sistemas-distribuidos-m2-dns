@@ -15,7 +15,8 @@ resolvedor a cada 0,5 s até ele responder o endereço.</p>
      ...087,92  app.sd.lab. 49 IN A 10.0.3.23
      ...093,20  app.sd.lab. 44 IN A 10.0.3.23
 (B)  rep 4: novo valor 10.0.4.27 publicado; autoritativos ns1, ns2, ns3 já respondem 10.0.4.27
-     resolvedor: TTL 3 -> 10.0.4.26 | TTL 3 -> 10.0.4.26 | TTL 2 -> 10.0.4.26 | TTL 59 -> 10.0.4.27</pre>
+     resolvedor: TTL 3 -> 10.0.4.26 | TTL 3 -> 10.0.4.26 | TTL 2 -> 10.0.4.26
+                 TTL 59 -> 10.0.4.27</pre>
 <table>
   <tr><th>Repetição (B)</th><th>Cache preenchido há</th><th>TTL restante na alteração</th><th>Janela medida</th><th>Diferença</th></tr>
   <tr><td>1</td><td class="n">10 s</td><td class="n">50 s</td><td class="n">47,773 s</td><td class="n">−2,23 s</td></tr>
@@ -49,8 +50,10 @@ resolvedor com cache vazio, tentativa de publicar uma versão no primário e ten
 <pre>Estado 1 (ns1, ns2, ns3): leituras NOERROR nos três; resolvedor 10 ms
   escrita no primário: publicada (serial 2026102635); ns2 e ns3 passam a servir 2026102635
   nsupdate em 172.31.0.12 e 172.31.0.13: update failed: REFUSED
-Estado 2 (ns1 parado): 172.31.0.11 sem resposta; ns2 e ns3 NOERROR; resolvedor NOERROR em 1202 ms
-  escrita no primário: impossível (container is not running); nsupdate nos secundários: REFUSED
+Estado 2 (ns1 parado): 172.31.0.11 sem resposta; ns2 e ns3 NOERROR
+  resolvedor NOERROR em 1202 ms
+  escrita no primário: impossível (container is not running)
+  nsupdate nos secundários: REFUSED
   ns2: expires: Mon, 26 Oct 2026 18:21:05 GMT
 Estado 3 (só ns3): ns1 e ns2 sem resposta; ns3 NOERROR; resolvedor NOERROR em 1205 ms
   escrita: impossível</pre>

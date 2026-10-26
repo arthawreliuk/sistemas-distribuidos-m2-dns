@@ -15,7 +15,7 @@ não escala para a Internet. Mecanismos que limitam a janela, com o que foi medi
 </ul>
 <p>Para um serviço que muda com frequência: manter o NOTIFY ligado; usar TTL baixo nos registros que mudam (a Unidade 4
 cita 30 a 60 s para facilitar failover em nuvem), sabendo que isso aumenta a carga nos servidores e a latência média das
-consultas ({{E9_S1}}); reduzir o TTL com antecedência antes de uma troca planejada e voltar a aumentá-lo depois;
+consultas (E9: com TTL 5 s o cliente deixou de usar a instância removida em 2,7 s e o servidor recebeu 12 consultas por minuto; com TTL 60 s, 36,2 s e 1,2 consulta por minuto); reduzir o TTL com antecedência antes de uma troca planejada e voltar a aumentá-lo depois;
 manter refresh na ordem de minutos como proteção caso o NOTIFY se perca; e manter o expire longo (dias), para que uma
 falha do primário não derrube as leituras. O TTL é o parâmetro que mais pesa para o cliente, porque a janela que ele
 percebe é dominada pelo cache, e não pela replicação.</p>
@@ -28,7 +28,7 @@ cache, se houver, fica com quem iterou (Unidade 4). Na prática combinam-se as d
 recursivas ao resolvedor, e o resolvedor faz consultas iterativas à raiz, ao TLD e ao autoritativo. Impacto: como o
 resolvedor guarda também as delegações (os NS dos TLDs), a raiz só é consultada quando essas delegações expiram, e não
 a cada nome; um único resolvedor absorve as perguntas repetidas de muitos clientes. No laboratório, a segunda consulta
-do E2 não chegou a nenhum autoritativo, e no E9 {{E9_S2}}. A recursiva simplifica o cliente e permite cache compartilhado;
+do E2 não chegou a nenhum autoritativo, e no E9 cerca de 245 consultas por minuto do cliente ao resolvedor geraram apenas 12 (TTL 5 s) ou 1,2 (TTL 60 s) consultas por minuto ao servidor autoritativo. A recursiva simplifica o cliente e permite cache compartilhado;
 a iterativa distribui a carga entre os servidores da hierarquia, que não precisam manter estado.</p>
 
 <p class="q">S3. O primário é um ponto único de falha? Para leitura, para escrita, ou ambos? Como as operações reais mitigam isso?</p>

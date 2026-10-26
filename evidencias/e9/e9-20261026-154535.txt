@@ -1,0 +1,292 @@
+
+===== Ambiente do E9 =====
+api1 traefik/whoami:v1.10.3 Up 14 seconds
+api2 traefik/whoami:v1.10.3 Up 14 seconds
+api3 traefik/whoami:v1.10.3 Up 14 seconds
+coredns coredns/coredns:1.11.3 Up 14 seconds
+zone "servicos.lab" {
+    type forward;
+    forward only;
+    forwarders { 172.31.0.60; };
+};
+
+===== TTL = 5 s — Parte A: carga com o serviço estável (5 janelas de 60 s) =====
+zona publicada:
+    $TTL 5
+    @ IN SOA ns.servicos.lab. admin.servicos.lab. ( 1793040335 30 10 300 5 )
+      IN NS ns.servicos.lab.
+    ns IN A 172.31.0.60
+    api IN A 172.31.0.21
+    api IN A 172.31.0.22
+    api IN A 172.31.0.23
+  janela 1: cliente fez 245 consultas ao resolvedor; CoreDNS recebeu 12 (12.00 por minuto)
+  janela 2: cliente fez 244 consultas ao resolvedor; CoreDNS recebeu 12 (12.00 por minuto)
+  janela 3: cliente fez 247 consultas ao resolvedor; CoreDNS recebeu 12 (12.00 por minuto)
+  janela 4: cliente fez 243 consultas ao resolvedor; CoreDNS recebeu 12 (12.00 por minuto)
+  janela 5: cliente fez 236 consultas ao resolvedor; CoreDNS recebeu 12 (12.00 por minuto)
+
+===== TTL = 5 s — Parte B: instância api3 (172.31.0.23) morre e é removida do registro =====
+  rep 1: CoreDNS sem api3 após 0.370 s; resolvedor após 3.909 s; última tentativa do cliente em api3: 3.353 s após a remoção; falhas do cliente: 4
+  trecho do log do cliente na rep 1 (instante IP resultado n):
+      -1.902 s  172.31.0.22 OK 3
+      -1.665 s  172.31.0.23 OK 3
+      -1.426 s  172.31.0.21 OK 3
+      -1.196 s  172.31.0.22 OK 3
+      -0.936 s  172.31.0.23 FALHA 3
+      -0.597 s  172.31.0.21 OK 3
+      -0.321 s  172.31.0.22 OK 3
+      -0.063 s  172.31.0.23 FALHA 3
+      +1.173 s  172.31.0.21 OK 3
+      +1.408 s  172.31.0.22 OK 3
+      +1.650 s  172.31.0.23 FALHA 3
+      +2.892 s  172.31.0.21 OK 3
+      +3.120 s  172.31.0.22 OK 3
+      +3.353 s  172.31.0.23 FALHA 3
+      +4.629 s  172.31.0.22 OK 2
+      +4.877 s  172.31.0.21 OK 2
+      +5.130 s  172.31.0.22 OK 2
+      +5.607 s  172.31.0.21 OK 2
+      +5.846 s  172.31.0.22 OK 2
+      +6.098 s  172.31.0.21 OK 2
+      +6.333 s  172.31.0.22 OK 2
+      +6.586 s  172.31.0.21 OK 2
+      +6.811 s  172.31.0.22 OK 2
+      +7.070 s  172.31.0.21 OK 2
+      +7.308 s  172.31.0.22 OK 2
+      +7.548 s  172.31.0.21 OK 2
+      +7.786 s  172.31.0.22 OK 2
+  rep 2: CoreDNS sem api3 após 0.388 s; resolvedor após 3.806 s; última tentativa do cliente em api3: 3.430 s após a remoção; falhas do cliente: 3
+  rep 3: CoreDNS sem api3 após 0.363 s; resolvedor após 3.691 s; última tentativa do cliente em api3: 3.143 s após a remoção; falhas do cliente: 3
+  rep 4: CoreDNS sem api3 após 1.061 s; resolvedor após 3.559 s; última tentativa do cliente em api3: 1.612 s após a remoção; falhas do cliente: 2
+  rep 5: CoreDNS sem api3 após 1.325 s; resolvedor após 3.237 s; última tentativa do cliente em api3: 1.710 s após a remoção; falhas do cliente: 2
+
+===== TTL = 60 s — Parte A: carga com o serviço estável (5 janelas de 60 s) =====
+zona publicada:
+    $TTL 60
+    @ IN SOA ns.servicos.lab. admin.servicos.lab. ( 1793040792 30 10 300 60 )
+      IN NS ns.servicos.lab.
+    ns IN A 172.31.0.60
+    api IN A 172.31.0.21
+    api IN A 172.31.0.22
+    api IN A 172.31.0.23
+  janela 1: cliente fez 246 consultas ao resolvedor; CoreDNS recebeu 2 (2.00 por minuto)
+  janela 2: cliente fez 246 consultas ao resolvedor; CoreDNS recebeu 1 (1.00 por minuto)
+  janela 3: cliente fez 243 consultas ao resolvedor; CoreDNS recebeu 1 (1.00 por minuto)
+  janela 4: cliente fez 246 consultas ao resolvedor; CoreDNS recebeu 1 (1.00 por minuto)
+  janela 5: cliente fez 247 consultas ao resolvedor; CoreDNS recebeu 1 (1.00 por minuto)
+
+===== TTL = 60 s — Parte B: instância api3 (172.31.0.23) morre e é removida do registro =====
+  rep 1: CoreDNS sem api3 após 0.894 s; resolvedor após 37.548 s; última tentativa do cliente em api3: 35.862 s após a remoção; falhas do cliente: 23
+  trecho do log do cliente na rep 1 (instante IP resultado n):
+      -1.902 s  172.31.0.21 OK 3
+      -1.660 s  172.31.0.22 OK 3
+      -1.411 s  172.31.0.23 OK 3
+      -1.180 s  172.31.0.21 OK 3
+      -0.934 s  172.31.0.22 OK 3
+      -0.699 s  172.31.0.23 FALHA 3
+      -0.451 s  172.31.0.21 OK 3
+      -0.222 s  172.31.0.22 OK 3
+      +0.008 s  172.31.0.23 FALHA 3
+      +1.243 s  172.31.0.21 OK 3
+      +1.474 s  172.31.0.22 OK 3
+      +1.701 s  172.31.0.23 FALHA 3
+      +2.935 s  172.31.0.21 OK 3
+      +3.172 s  172.31.0.22 OK 3
+      +3.421 s  172.31.0.23 FALHA 3
+      +4.649 s  172.31.0.21 OK 3
+      +4.879 s  172.31.0.22 OK 3
+      +5.124 s  172.31.0.23 FALHA 3
+      +6.380 s  172.31.0.21 OK 3
+      +6.614 s  172.31.0.22 OK 3
+      +6.829 s  172.31.0.23 FALHA 3
+      +8.072 s  172.31.0.21 OK 3
+      +8.314 s  172.31.0.22 OK 3
+      +8.540 s  172.31.0.23 FALHA 3
+      +9.773 s  172.31.0.21 OK 3
+     +10.018 s  172.31.0.22 OK 3
+     +10.246 s  172.31.0.23 FALHA 3
+     +11.476 s  172.31.0.21 OK 3
+     +11.708 s  172.31.0.22 OK 3
+     +11.952 s  172.31.0.23 FALHA 3
+     +13.193 s  172.31.0.21 OK 3
+     +13.417 s  172.31.0.22 OK 3
+     +13.636 s  172.31.0.23 FALHA 3
+     +14.892 s  172.31.0.21 OK 3
+     +15.131 s  172.31.0.22 OK 3
+     +15.359 s  172.31.0.23 FALHA 3
+     +16.594 s  172.31.0.21 OK 3
+     +16.839 s  172.31.0.22 OK 3
+     +17.071 s  172.31.0.23 FALHA 3
+     +18.305 s  172.31.0.21 OK 3
+     +18.543 s  172.31.0.22 OK 3
+     +18.783 s  172.31.0.23 FALHA 3
+     +20.023 s  172.31.0.21 OK 3
+     +20.257 s  172.31.0.22 OK 3
+     +20.494 s  172.31.0.23 FALHA 3
+     +21.732 s  172.31.0.21 OK 3
+     +21.958 s  172.31.0.22 OK 3
+     +22.191 s  172.31.0.23 FALHA 3
+     +23.448 s  172.31.0.21 OK 3
+     +23.670 s  172.31.0.22 OK 3
+     +23.906 s  172.31.0.23 FALHA 3
+     +25.151 s  172.31.0.21 OK 3
+     +25.395 s  172.31.0.22 OK 3
+     +25.623 s  172.31.0.23 FALHA 3
+     +26.856 s  172.31.0.21 OK 3
+     +27.102 s  172.31.0.22 OK 3
+     +27.335 s  172.31.0.23 FALHA 3
+     +28.565 s  172.31.0.21 OK 3
+     +28.810 s  172.31.0.22 OK 3
+     +29.046 s  172.31.0.23 FALHA 3
+     +30.266 s  172.31.0.21 OK 3
+     +30.497 s  172.31.0.22 OK 3
+     +30.732 s  172.31.0.23 FALHA 3
+     +31.971 s  172.31.0.21 OK 3
+     +32.205 s  172.31.0.22 OK 3
+     +32.434 s  172.31.0.23 FALHA 3
+     +33.672 s  172.31.0.21 OK 3
+     +33.913 s  172.31.0.22 OK 3
+     +34.138 s  172.31.0.23 FALHA 3
+     +35.370 s  172.31.0.21 OK 3
+     +35.617 s  172.31.0.22 OK 3
+     +35.862 s  172.31.0.23 FALHA 3
+     +37.129 s  172.31.0.21 OK 3
+     +37.379 s  172.31.0.22 OK 2
+     +37.617 s  172.31.0.21 OK 2
+     +37.851 s  172.31.0.22 OK 2
+     +38.094 s  172.31.0.21 OK 2
+     +38.331 s  172.31.0.22 OK 2
+     +38.569 s  172.31.0.21 OK 2
+     +38.806 s  172.31.0.22 OK 2
+     +39.053 s  172.31.0.21 OK 2
+     +39.291 s  172.31.0.22 OK 2
+     +39.522 s  172.31.0.21 OK 2
+     +39.752 s  172.31.0.22 OK 2
+     +39.987 s  172.31.0.21 OK 2
+     +40.224 s  172.31.0.22 OK 2
+     +40.450 s  172.31.0.21 OK 2
+     +40.694 s  172.31.0.22 OK 2
+     +40.941 s  172.31.0.21 OK 2
+     +41.171 s  172.31.0.22 OK 2
+     +41.404 s  172.31.0.21 OK 2
+     +41.631 s  172.31.0.22 OK 2
+     +41.856 s  172.31.0.21 OK 2
+     +42.096 s  172.31.0.22 OK 2
+     +42.340 s  172.31.0.21 OK 2
+     +42.595 s  172.31.0.22 OK 2
+     +42.836 s  172.31.0.21 OK 2
+     +43.083 s  172.31.0.22 OK 2
+     +43.309 s  172.31.0.21 OK 2
+     +43.545 s  172.31.0.22 OK 2
+     +43.786 s  172.31.0.21 OK 2
+     +44.057 s  172.31.0.22 OK 2
+     +44.308 s  172.31.0.21 OK 2
+     +44.552 s  172.31.0.22 OK 2
+     +44.797 s  172.31.0.21 OK 2
+     +45.027 s  172.31.0.22 OK 2
+     +45.276 s  172.31.0.21 OK 2
+     +45.535 s  172.31.0.22 OK 2
+     +45.770 s  172.31.0.21 OK 2
+     +46.010 s  172.31.0.22 OK 2
+     +46.250 s  172.31.0.21 OK 2
+     +46.498 s  172.31.0.22 OK 2
+     +46.758 s  172.31.0.21 OK 2
+     +46.995 s  172.31.0.22 OK 2
+     +47.232 s  172.31.0.21 OK 2
+     +47.478 s  172.31.0.22 OK 2
+     +47.729 s  172.31.0.21 OK 2
+     +47.984 s  172.31.0.22 OK 2
+     +48.216 s  172.31.0.21 OK 2
+     +48.474 s  172.31.0.22 OK 2
+     +48.703 s  172.31.0.21 OK 2
+     +48.927 s  172.31.0.22 OK 2
+     +49.152 s  172.31.0.21 OK 2
+     +49.413 s  172.31.0.22 OK 2
+     +49.660 s  172.31.0.21 OK 2
+     +49.890 s  172.31.0.22 OK 2
+     +50.122 s  172.31.0.21 OK 2
+     +50.349 s  172.31.0.22 OK 2
+     +50.586 s  172.31.0.21 OK 2
+     +50.819 s  172.31.0.22 OK 2
+     +51.065 s  172.31.0.21 OK 2
+     +51.305 s  172.31.0.22 OK 2
+     +51.528 s  172.31.0.21 OK 2
+     +51.760 s  172.31.0.22 OK 2
+     +51.995 s  172.31.0.21 OK 2
+     +52.230 s  172.31.0.22 OK 2
+     +52.468 s  172.31.0.21 OK 2
+     +52.705 s  172.31.0.22 OK 2
+     +52.943 s  172.31.0.21 OK 2
+     +53.184 s  172.31.0.22 OK 2
+     +53.428 s  172.31.0.21 OK 2
+     +53.657 s  172.31.0.22 OK 2
+     +53.884 s  172.31.0.21 OK 2
+     +54.118 s  172.31.0.22 OK 2
+     +54.362 s  172.31.0.21 OK 2
+     +54.602 s  172.31.0.22 OK 2
+     +54.839 s  172.31.0.21 OK 2
+     +55.072 s  172.31.0.22 OK 2
+     +55.315 s  172.31.0.21 OK 2
+     +55.553 s  172.31.0.22 OK 2
+     +55.806 s  172.31.0.21 OK 2
+     +56.050 s  172.31.0.22 OK 2
+     +56.286 s  172.31.0.21 OK 2
+     +56.534 s  172.31.0.22 OK 2
+     +56.786 s  172.31.0.21 OK 2
+     +57.035 s  172.31.0.22 OK 2
+     +57.279 s  172.31.0.21 OK 2
+     +57.519 s  172.31.0.22 OK 2
+     +57.748 s  172.31.0.21 OK 2
+     +57.990 s  172.31.0.22 OK 2
+     +58.234 s  172.31.0.21 OK 2
+     +58.486 s  172.31.0.22 OK 2
+     +58.735 s  172.31.0.21 OK 2
+     +58.978 s  172.31.0.22 OK 2
+     +59.223 s  172.31.0.21 OK 2
+     +59.458 s  172.31.0.22 OK 2
+     +59.688 s  172.31.0.21 OK 2
+     +59.933 s  172.31.0.22 OK 2
+     +60.167 s  172.31.0.21 OK 2
+     +60.394 s  172.31.0.22 OK 2
+     +60.641 s  172.31.0.21 OK 2
+     +60.879 s  172.31.0.22 OK 2
+     +61.118 s  172.31.0.21 OK 2
+     +61.359 s  172.31.0.22 OK 2
+     +61.594 s  172.31.0.21 OK 2
+     +61.838 s  172.31.0.22 OK 2
+     +62.075 s  172.31.0.21 OK 2
+     +62.314 s  172.31.0.22 OK 2
+     +62.553 s  172.31.0.21 OK 2
+     +62.786 s  172.31.0.22 OK 2
+  rep 2: CoreDNS sem api3 após 0.377 s; resolvedor após 37.120 s; última tentativa do cliente em api3: 35.558 s após a remoção; falhas do cliente: 22
+  rep 3: CoreDNS sem api3 após 0.214 s; resolvedor após 36.811 s; última tentativa do cliente em api3: 36.512 s após a remoção; falhas do cliente: 23
+  rep 4: CoreDNS sem api3 após 1.046 s; resolvedor após 36.995 s; última tentativa do cliente em api3: 35.576 s após a remoção; falhas do cliente: 22
+  rep 5: CoreDNS sem api3 após 1.091 s; resolvedor após 37.591 s; última tentativa do cliente em api3: 37.377 s após a remoção; falhas do cliente: 23
+
+===== Estatística (desvio padrão amostral, n - 1) =====
+Carga no CoreDNS (consultas por minuto):
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+5                                5     12.000       0.000   12.000   12.000
+60                               5      1.200       0.447    1.000    2.000
+Consultas do cliente ao resolvedor por janela:
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+5                                5    243.000       4.183  236.000  247.000
+60                               5    245.600       1.517  243.000  247.000
+atraso_coredns_s:
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+5                                5      0.701       0.458    0.363    1.325
+60                               5      0.724       0.402    0.214    1.091
+atraso_resolvedor_s:
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+5                                5      3.640       0.261    3.237    3.909
+60                               5     37.213       0.344   36.811   37.591
+atraso_cliente_s:
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+5                                5      2.650       0.909    1.612    3.430
+60                               5     36.177       0.774   35.558   37.377
+falhas_cliente:
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+5                                5      2.800       0.837    2.000    4.000
+60                               5     22.600       0.548   22.000   23.000
+
+Dados brutos: resultados/e9_carga.csv resultados/e9_remocao.csv   Saída: evidencias/e9/e9-20261026-154535.txt

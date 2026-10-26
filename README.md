@@ -71,7 +71,7 @@ ns1/ ns2/ ns3/ resolvedor/       named.conf de cada servidor (ns1/named-semnotif
 coredns/Corefile                 CoreDNS do E9
 zonas/db.sd.lab                  zona do primário (montada em ns1:/var/lib/bind)
 scripts/                         um script por experimento
-evidencias/eN/                   PREVISAO.md (antes), saídas brutas, RESULTADO.md (depois)
+evidencias/eN/                   PREVISAO.md (antes da execução) e saídas brutas
 diagramas/                       diagramas próprios
 resultados/                      medições brutas (CSV)
 relatorio/                       relatório (partes HTML -> relatorio.pdf)

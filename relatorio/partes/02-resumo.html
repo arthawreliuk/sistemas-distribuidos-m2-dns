@@ -1,0 +1,12 @@
+<h1>2. Resumo</h1>
+<p>Este trabalho investiga o DNS como sistema distribuído real. Montamos, em contêineres Docker em um único computador,
+um primário e dois secundários autoritativos BIND 9 para a zona <code>sd.lab</code>, um resolvedor com cache e um cliente,
+e executamos os experimentos E1 a E8 do roteiro, com previsão registrada antes de cada um e cinco repetições nas
+medições de tempo. A replicação é primário-backup assíncrona: com NOTIFY a alteração chegou aos secundários em 0,34 s em
+média, contra 16,2 s apenas com o refresh. O cliente percebe a consistência eventual pelo cache: o resolvedor serviu o
+valor antigo pelo TTL restante (até 47,8 s com TTL 60). Não há quórum: leituras continuaram com um único servidor,
+escritas pararam sem o primário. Em uma partição, o secundário isolado respondeu a versão antiga até o expire de 300 s
+e depois passou a SERVFAIL; ao voltar, recuperou o estado por transferência completa da zona. O serial do SOA ordena as
+versões, e uma versão com serial menor foi ignorada pelos secundários. Na ênfase D (E9), com CoreDNS, um TTL de 5 s fez
+o cliente abandonar uma instância removida em 2,7 s, contra 36,2 s com TTL de 60 s, ao custo de dez vezes mais consultas
+ao servidor de nomes.</p>

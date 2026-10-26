@@ -3,9 +3,15 @@
 # Pré-requisito: laboratório no ar (docker compose up -d). Avança com ENTER.
 source "$(dirname "$0")/lib.sh"
 pausa() { printf '\n[ENTER] '; read -r _; }
-soa() { for s in 11 12 13; do printf '  172.31.0.%s  ' $s; docker exec cliente dig @172.31.0.$s sd.lab SOA +short +time=1 +tries=1 | awk '{print "serial", $3}' | grep . || echo "sem resposta"; done; }
+soa() {
+  local s r
+  for s in 11 12 13; do
+    r=$(docker exec cliente dig @172.31.0.$s sd.lab SOA +short +time=1 +tries=1 2>/dev/null | awk '$3 ~ /^[0-9]+$/ {print $3}')
+    if [ -n "$r" ]; then echo "  172.31.0.$s  serial $r"; else echo "  172.31.0.$s  sem resposta"; fi
+  done
+}
 
-secao "Topologia: 5 contêineres, 2 redes"
+secao "Topologia: contêineres em execução e serial em cada autoritativo"
 docker compose ps --format '  {{.Name}}\t{{.Status}}'
 soa; pausa
 
@@ -36,7 +42,8 @@ docker start ns1 >/dev/null; echo "  docker start ns1"; pausa
 secao "E6 — Partição: ns3 fora da rede interna, ainda acessível ao cliente"
 docker network disconnect sdm2dns_interna ns3; echo "  docker network disconnect sdm2dns_interna ns3"
 serial=$(proximo_serial); novo="10.0.9.$((10#${serial: -2}))"
-escreve_zona "$serial" "$novo"; recarrega >/dev/null; sleep 2
+escreve_zona "$serial" "$novo"; recarrega >/dev/null
+docker exec cliente sh /scripts/sonda.sh "$novo" 15 172.31.0.12 >/dev/null
 for s in 11 12 13; do echo "  172.31.0.$s -> $(docker exec cliente dig @172.31.0.$s app.sd.lab +short +norecurse)"; done
 echo "  (o ns3 serve a versão antiga até o expire de 300 s)"; pausa
 

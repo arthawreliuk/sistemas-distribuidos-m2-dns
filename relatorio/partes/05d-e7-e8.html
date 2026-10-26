@@ -29,7 +29,7 @@ gera um NOTIFY. Cinco repetições por cenário.</p>
 </table>
 <pre>rep 1 (A): 18:35:44.668 transfer of 'sd.lab/IN' from 172.30.0.11#53: resetting
            18:35:44.669 zone sd.lab/IN: transferred serial 2026102638
-rep 2 (B): 18:40:38.170 zone sd.lab/IN: transferred serial 2026102645     (sozinho, após reconectar)
+rep 2 (B): 18:40:38.170 zone sd.lab/IN: transferred serial 2026102645 (sozinho)
            18:40:39.039 notify from 172.30.0.11#39359: serial 2026102646
            18:40:39.040 zone sd.lab/IN: transferred serial 2026102646
 Estado final: ns1, ns2 e ns3 com serial 2026102652 e app 10.0.7.52</pre>
@@ -57,14 +57,15 @@ seriais maiores; as réplicas ficam divergentes até uma publicação com serial
 <p><b>Procedimento.</b> <code>scripts/e8.sh</code>: tipo da zona em cada servidor; publicação no ns1 com serial
 2026101401 (menor que 2026102652) e <code>app</code> = 10.0.8.1; consultas logo após e 40 s depois; logs; correção com
 serial 2026102653.</p>
-<pre>ns1: type: primary    ns2: type: secondary    ns3: type: secondary    MNAME do SOA: ns1.sd.lab.
+<pre>ns1: type: primary   ns2: type: secondary   ns3: type: secondary   MNAME: ns1.sd.lab.
 ns1 18:43:58.302 zone sd.lab/IN: zone serial (2026101401/2026102652) has gone backwards
 ns1 18:43:58.302 zone sd.lab/IN: loaded serial 2026101401
 ns2 18:43:58.304 notify from 172.30.0.11#36934: zone is up to date
-ns2 18:44:02.706 serial number (2026101401) received from primary 172.30.0.11#53 &lt; ours (2026102652)
+ns2 18:44:02.706 serial number (2026101401) received from primary 172.30.0.11#53
+                 &lt; ours (2026102652)
     (repetido a cada 9 a 10 s no ns2 e no ns3)
-após 40 s:  ns1 2026101401 -> 10.0.8.1   ns2 2026102652 -> 10.0.7.52   ns3 2026102652 -> 10.0.7.52
-correção (serial 2026102653): ns2 18:44:40.222 e ns3 18:44:40.523 transferred serial 2026102653</pre>
+após 40 s: ns1 2026101401 -> 10.0.8.1   ns2 e ns3 2026102652 -> 10.0.7.52
+correção (2026102653): ns2 18:44:40.222 e ns3 18:44:40.523 transferred serial 2026102653</pre>
 <p><b>Resultado.</b> Previsão confirmada. O ns1 avisou que o serial voltou para trás, mas carregou e serviu a versão do
 arquivo. Os secundários receberam o NOTIFY e consultaram o SOA repetidamente, sempre concluindo que a versão do primário
 era mais antiga que a deles; mantiveram o valor 10.0.7.52. Durante esse tempo o mesmo nome teve respostas autoritativas

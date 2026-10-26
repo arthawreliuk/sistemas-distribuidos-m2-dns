@@ -124,7 +124,7 @@ como os secundários no E1.</p>
 <p class="q">Q14. Onde o sistema é usado, quais as limitações e que cuidados de segurança exige?</p>
 <p>Em toda a Internet (web, e-mail, CDNs que redirecionam o cliente para o servidor mais próximo — Unidade 2) e dentro de
 clusters como diretório de serviços (CoreDNS no Kubernetes, E9). Limitações: consistência apenas eventual, com janela de
-até um TTL (E4); escrita dependente de um único primário (E5); TTL baixo acelera mudanças, mas aumenta a carga ({{E9_CARGA}}).
+até um TTL (E4); escrita dependente de um único primário (E5); TTL baixo acelera mudanças, mas aumenta a carga (E9: com TTL 5 s o CoreDNS recebeu 12 consultas por minuto, contra 1,2 com TTL 60 s).
 Segurança (Unidade 4): o DNS nasceu sem autenticação nem sigilo. Ameaças: envenenamento de cache, interceptação das
 consultas, sequestro de delegação e amplificação em ataques de negação de serviço. Defesas: DNSSEC (integridade e
 autenticidade), DoT e DoH (sigilo entre cliente e resolvedor), bloqueio e 2FA no registrador, limitação de taxa e

@@ -1,0 +1,54 @@
+<h2>5.9. E9 — Descoberta de serviços com CoreDNS (ênfase D)</h2>
+<p><b>Objetivo.</b> Registrar e remover instâncias de um serviço dinamicamente com CoreDNS; medir o efeito do TTL baixo
+sobre a carga e sobre a rapidez com que os clientes deixam de usar uma instância morta; relacionar com o Kubernetes.</p>
+<div class="fig">
+  <p class="legenda">Figura 4 — Montagem do E9</p>
+  <img src="../diagramas/e9-descoberta.png" alt="Montagem do E9">
+  <p class="fonte">Fonte: elaborado pelos autores (2026).</p>
+</div>
+<p><b>Montagem.</b> O CoreDNS 1.11.3 (172.31.0.60) é autoritativo da zona <code>servicos.lab</code> com o plugin
+<code>file</code>, que relê o arquivo da zona a cada 1 s e carrega a versão nova quando o serial aumenta; o plugin
+<code>prometheus</code> expõe o contador de consultas recebidas. O nome <code>api.servicos.lab</code> anuncia as três
+instâncias (api1, api2, api3: 172.31.0.21 a 23), servidores HTTP mínimos. O resolvedor BIND encaminha
+<code>servicos.lab</code> ao CoreDNS e guarda as respostas em cache. O cliente, a cada 0,2 s, descobre as instâncias pelo
+resolvedor e faz uma requisição HTTP (tempo limite de 1 s) a uma delas, em rodízio. O caminho de consulta passa por um
+cache, sem o qual o TTL não teria efeito.</p>
+<p><b>Previsão.</b> Ver <code>evidencias/e9/PREVISAO.md</code>: CoreDNS recebendo cerca de 60/TTL consultas por minuto
+(~12 com TTL 5 s, ~1 com TTL 60 s); após a remoção, o CoreDNS para de anunciar a instância em até ~1 s, e o resolvedor e
+o cliente continuam usando o endereço antigo até o TTL em cache vencer.</p>
+<p><b>Procedimento.</b> <code>scripts/e9.sh 5 60</code>, para TTL de 5 s e de 60 s. Parte A: cinco janelas de 60 s com o
+cliente ativo e o serviço estável, contando as consultas que chegam ao CoreDNS. Parte B: cinco repetições em que, com o
+cliente ativo, a instância api3 é parada (<code>docker stop</code>) e retirada da zona no mesmo instante; mede-se quando o
+CoreDNS deixa de anunciá-la, quando o resolvedor deixa de anunciá-la e a última tentativa do cliente nela. O aquecimento
+antes da remoção foi de 10 s (TTL 5) e de 20 s (TTL 60), a partir do cache vazio.</p>
+<pre>TTL 5, rep 1 — log do cliente
+(tempo em relação à remoção, IP escolhido, resultado, nº de instâncias anunciadas)
+  -1,665 s 172.31.0.23 OK 3      -0,936 s 172.31.0.23 FALHA 3     -0,063 s 172.31.0.23 FALHA 3
+  +1,650 s 172.31.0.23 FALHA 3   +3,353 s 172.31.0.23 FALHA 3     +4,629 s 172.31.0.22 OK 2
+  (a partir daí só 172.31.0.21 e .22)</pre>
+<table>
+  <tr><th>Medida (média de 5; desvio padrão)</th><th>TTL 5 s</th><th>TTL 60 s</th></tr>
+  <tr><td>Consultas do cliente ao resolvedor por janela de 60 s</td><td class="n">243,0 (4,2)</td><td class="n">245,6 (1,5)</td></tr>
+  <tr><td>Consultas recebidas pelo CoreDNS por minuto</td><td class="n">12,0 (0,0)</td><td class="n">1,2 (0,4)</td></tr>
+  <tr><td>Tempo até o CoreDNS deixar de anunciar a api3</td><td class="n">0,701 s (0,458)</td><td class="n">0,724 s (0,402)</td></tr>
+  <tr><td>Tempo até o resolvedor deixar de anunciar a api3</td><td class="n">3,640 s (0,261)</td><td class="n">37,213 s (0,344)</td></tr>
+  <tr><td>Última tentativa do cliente na api3 após a remoção</td><td class="n">2,650 s (0,909)</td><td class="n">36,177 s (0,774)</td></tr>
+  <tr><td>Requisições do cliente com falha</td><td class="n">2,8 (0,8)</td><td class="n">22,6 (0,5)</td></tr>
+</table>
+<p><b>Resultado.</b> Previsão confirmada. O cliente fez cerca de 245 consultas por minuto ao resolvedor nos dois casos,
+mas o CoreDNS recebeu 12 por minuto com TTL 5 s e 1,2 com TTL 60 s: o TTL baixo multiplicou por 10 a carga no servidor
+de nomes. A remoção chegou ao CoreDNS em menos de 1,4 s (intervalo de recarga do arquivo) nos dois casos. O resolvedor
+continuou anunciando a instância morta pelo tempo restante do TTL em cache: 3,6 s com TTL 5 e 37,2 s com TTL 60. Com TTL
+60 os valores ficaram próximos entre as repetições porque a remoção ocorreu sempre cerca de 20 s depois de o cache ser
+preenchido, restando cerca de 40 s de TTL. Enquanto a instância estava na lista, o cliente continuou escolhendo-a e
+falhou 2,8 vezes em média com TTL 5 e 22,6 vezes com TTL 60; cada falha custou o tempo limite de 1 s.</p>
+<p><b>Análise.</b> O TTL controla o compromisso entre atualização rápida e custo de consultas: o tempo em que clientes usam
+uma instância que já não existe é limitado pelo TTL (consistência eventual do registro de serviços, E4), e a carga no
+servidor de nomes cresce na proporção inversa do TTL. A remoção no servidor autoritativo é quase imediata; o que atrasa a
+descoberta é o cache. No Kubernetes (Unidade 4), o Service é o nome estável, as EndpointSlices guardadas no etcd são o
+registro das instâncias e o CoreDNS responde a partir delas; a configuração padrão do cluster guarda respostas por 30 s
+(<code>cache 30</code>), o que corresponde a uma janela entre os dois cenários medidos. Para serviços comuns, o
+Kubernetes evita expor diretamente os IPs dos pods: o nome resolve para um IP virtual estável (ClusterIP) e o kube-proxy
+redistribui as conexões, de modo que a troca de instâncias não depende do TTL; já para serviços headless, como os de
+StatefulSets, o nome resolve para os IPs dos pods e o comportamento é o observado aqui. O registro em etcd é consistente
+(Raft); a inconsistência visível ao cliente vem só dos caches de DNS.</p>
