@@ -43,6 +43,7 @@ services:
     hostname: cliente
     mem_limit: 32m
     command: ["sleep", "infinity"]
+    volumes: ["./scripts:/scripts:ro"]
     networks: {clientes: {ipv4_address: 172.31.0.100}}
 
 networks:
