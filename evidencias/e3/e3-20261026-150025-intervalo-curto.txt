@@ -1,0 +1,45 @@
+
+===== Série 1: com NOTIFY (configuração padrão do laboratório) =====
+    notify explicit;
+    also-notify { 172.30.0.12; 172.30.0.13; };
+com_notify rep 1 serial 2026102604 valor 10.0.3.4: 172.31.0.12 respondeu após 0.043 s
+com_notify rep 1 serial 2026102604 valor 10.0.3.4: 172.31.0.13 respondeu após 0.592 s
+com_notify rep 2 serial 2026102605 valor 10.0.3.5: 172.31.0.12 respondeu após 1.341 s
+com_notify rep 2 serial 2026102605 valor 10.0.3.5: 172.31.0.13 respondeu após 1.910 s
+com_notify rep 3 serial 2026102606 valor 10.0.3.6: 172.31.0.12 respondeu após 0.955 s
+com_notify rep 3 serial 2026102606 valor 10.0.3.6: 172.31.0.13 respondeu após 1.372 s
+com_notify rep 4 serial 2026102607 valor 10.0.3.7: 172.31.0.12 respondeu após 1.364 s
+com_notify rep 4 serial 2026102607 valor 10.0.3.7: 172.31.0.13 respondeu após 1.926 s
+com_notify rep 5 serial 2026102608 valor 10.0.3.8: 172.31.0.12 respondeu após 1.526 s
+com_notify rep 5 serial 2026102608 valor 10.0.3.8: 172.31.0.13 respondeu após 1.856 s
+
+===== Série 2: sem NOTIFY (ns1 recriado com ns1/named-semnotify.conf) =====
+ Container ns1 Started 
+    notify no;
+sem_notify rep 1 serial 2026102609 valor 10.0.3.9: 172.31.0.12 respondeu após 19.259 s
+sem_notify rep 1 serial 2026102609 valor 10.0.3.9: 172.31.0.13 respondeu após 19.687 s
+sem_notify rep 2 serial 2026102610 valor 10.0.3.10: 172.31.0.13 respondeu após 24.598 s
+sem_notify rep 2 serial 2026102610 valor 10.0.3.10: 172.31.0.12 respondeu após 25.143 s
+sem_notify rep 3 serial 2026102611 valor 10.0.3.11: 172.31.0.13 respondeu após 20.321 s
+sem_notify rep 3 serial 2026102611 valor 10.0.3.11: 172.31.0.12 respondeu após 23.894 s
+sem_notify rep 4 serial 2026102612 valor 10.0.3.12: 172.31.0.13 respondeu após 23.360 s
+sem_notify rep 4 serial 2026102612 valor 10.0.3.12: 172.31.0.12 respondeu após 24.858 s
+sem_notify rep 5 serial 2026102613 valor 10.0.3.13: 172.31.0.13 respondeu após 19.039 s
+sem_notify rep 5 serial 2026102613 valor 10.0.3.13: 172.31.0.12 respondeu após 23.615 s
+
+===== Restaura o ns1 com NOTIFY =====
+ Container ns1 Started 
+    notify explicit;
+    also-notify { 172.30.0.12; 172.30.0.13; };
+
+===== Estatística (desvio padrão amostral, n - 1) =====
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+com_notify / 172.31.0.12         5      1.046       0.599    0.043    1.526
+com_notify / 172.31.0.13         5      1.531       0.573    0.592    1.926
+sem_notify / 172.31.0.12         5     23.354       2.377   19.259   25.143
+sem_notify / 172.31.0.13         5     21.401       2.436   19.039   24.598
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+com_notify                      10      1.288       0.609    0.043    1.926
+sem_notify                      10     22.377       2.491   19.039   25.143
+
+Dados brutos: resultados/e3.csv   Saída: evidencias/e3/e3-20261026-150025.txt

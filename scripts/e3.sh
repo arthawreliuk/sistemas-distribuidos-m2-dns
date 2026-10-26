@@ -1,8 +1,11 @@
 #!/bin/bash
 # E3 — Tempo de propagação primário -> secundários, com e sem NOTIFY.
-# Uso: scripts/e3.sh [REPETICOES]   (padrão: 5 por cenário)
+# Uso: scripts/e3.sh [REPETICOES] [INTERVALO_S]   (padrão: 5 por cenário, 8 s)
+# O intervalo entre repetições precisa ser maior que 5 s: o BIND não envia
+# NOTIFY da mesma zona mais de uma vez a cada 5 s (observado na 1ª execução).
 source "$(dirname "$0")/lib.sh"
 reps=${1:-5}
+intervalo=${2:-8}
 mkdir -p resultados
 saida="evidencias/e3/e3-$(date +%Y%m%d-%H%M%S).txt"; mkdir -p evidencias/e3
 csv="resultados/e3.csv"
@@ -27,7 +30,7 @@ serie() {  # serie NOME LIMITE_S
       echo "$nome rep $i serial $serial valor $valor: $ip respondeu após $atraso s"
     done < "$arq"
     rm -f "$arq"
-    sleep 2
+    sleep "$intervalo"
   done
 }
 
