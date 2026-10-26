@@ -1,0 +1,5 @@
+# Sobreposição usada só no E3 (série sem NOTIFY):
+#   docker compose -f docker-compose.yml -f docker-compose.semnotify.yml up -d ns1
+services:
+  ns1:
+    volumes: !override ["./ns1/named-semnotify.conf:/etc/bind/named.conf:ro", "./zonas:/var/lib/bind"]

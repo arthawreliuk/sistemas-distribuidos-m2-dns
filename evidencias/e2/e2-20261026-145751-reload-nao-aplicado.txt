@@ -1,0 +1,50 @@
+
+===== Estado inicial (SOA nos três autoritativos) =====
+172.31.0.11 -> 2026101401
+172.31.0.12 -> 2026101401
+172.31.0.13 -> 2026101401
+
+===== Ativa o log de consultas e esvazia o cache do resolvedor =====
+
+===== Leitura 1: cliente -> resolvedor (cache vazio) =====
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+app.sd.lab.		60	IN	A	10.0.0.1
+;; SERVER: 172.31.0.53#53(172.31.0.53) (UDP)
+
+===== Leitura 2: cliente -> resolvedor (dois segundos depois) =====
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+app.sd.lab.		57	IN	A	10.0.0.1
+;; SERVER: 172.31.0.53#53(172.31.0.53) (UDP)
+
+===== Leitura direta no primário, sem recursão =====
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 4
+app.sd.lab.		60	IN	A	10.0.0.1
+;; SERVER: 172.31.0.11#53(172.31.0.11) (UDP)
+
+===== Log de consultas de cada servidor (desde 17:57:52 UTC) =====
+--- resolvedor
+(nenhuma consulta a app.sd.lab)
+--- ns1
+(nenhuma consulta a app.sd.lab)
+--- ns2
+(nenhuma consulta a app.sd.lab)
+--- ns3
+(nenhuma consulta a app.sd.lab)
+
+===== Escrita: nova versão da zona no primário =====
+novo serial: 2026102601  app -> 10.0.0.2
+rndc reload em 1793037477.766256667
+
+===== Logs do primário (ns1) =====
+
+===== Logs do secundário ns2 =====
+
+===== Logs do secundário ns3 =====
+
+===== Depois da escrita =====
+172.31.0.11 -> 10.0.0.1
+172.31.0.12 -> 10.0.0.1
+172.31.0.13 -> 10.0.0.1
+resolvedor 172.31.0.53 -> app.sd.lab.		52	IN	A	10.0.0.1
+
+Evidências gravadas em evidencias/e2/e2-20261026-145751.txt
