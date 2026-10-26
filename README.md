@@ -5,6 +5,14 @@
 Laboratório local com BIND 9 em contêineres leves (Docker Compose), seguindo a seção 5.2 do
 roteiro do Prof. Ramices dos Santos Silva, e CoreDNS para a ênfase D (E9).
 
+Repositório: https://github.com/arthawreliuk/sistemas-distribuidos-m2-dns
+
+Entregáveis:
+- Relatório: [`relatorio/relatorio.pdf`](relatorio/relatorio.pdf) (montado de `relatorio/partes/` por `relatorio/montar.py`).
+- Evidências em imagem: [`docs/evidencias/`](docs/evidencias/) (versões curtas para os slides em `docs/evidencias/slides/`),
+  geradas por `scripts/gerar_prints.py` a partir das saídas gravadas em `evidencias/`.
+- Demonstração ao vivo do seminário: `./scripts/demo.sh`.
+
 ## Requisitos
 - Docker com Compose v2+ (testado: Docker Desktop 29.4.3 / Compose v5.1.3, macOS 26.4.1, Apple M3).
 - Git. Nenhuma outra dependência no host: `dig` e `rndc` rodam dentro dos contêineres.
@@ -73,6 +81,7 @@ zonas/db.sd.lab                  zona do primário (montada em ns1:/var/lib/bind
 scripts/                         um script por experimento
 evidencias/eN/                   PREVISAO.md (antes da execução) e saídas brutas
 diagramas/                       diagramas próprios
+docs/evidencias/                 prints das saídas dos experimentos
 resultados/                      medições brutas (CSV)
 relatorio/                       relatório (partes HTML -> relatorio.pdf)
 ```
