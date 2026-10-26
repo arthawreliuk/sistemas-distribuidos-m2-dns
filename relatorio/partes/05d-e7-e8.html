@@ -49,3 +49,31 @@ de detecção de falhas do secundário: após uma partição curta, ele recupera
 longa, o secundário deixa de tentar por um período (o primário fica registrado como inalcançável), e a recuperação pode
 levar minutos se nada mais acontecer. A recuperação após uma partição é diferente de reiniciar o contêiner: o ns3 manteve
 a sua cópia (até o expire) e só buscou a versão nova.</p>
+
+<h2>5.8. E8 — Coordenação e ordem</h2>
+<p><b>Objetivo.</b> Mostrar quem coordena e qual é o mecanismo de versionamento; publicar uma versão com serial menor que o atual.</p>
+<p><b>Previsão.</b> O primário passa a servir a versão com serial menor, mas os secundários a ignoram, porque só aceitam
+seriais maiores; as réplicas ficam divergentes até uma publicação com serial maior.</p>
+<p><b>Procedimento.</b> <code>scripts/e8.sh</code>: tipo da zona em cada servidor; publicação no ns1 com serial
+2026101401 (menor que 2026102652) e <code>app</code> = 10.0.8.1; consultas logo após e 40 s depois; logs; correção com
+serial 2026102653.</p>
+<pre>ns1: type: primary    ns2: type: secondary    ns3: type: secondary    MNAME do SOA: ns1.sd.lab.
+ns1 18:43:58.302 zone sd.lab/IN: zone serial (2026101401/2026102652) has gone backwards
+ns1 18:43:58.302 zone sd.lab/IN: loaded serial 2026101401
+ns2 18:43:58.304 notify from 172.30.0.11#36934: zone is up to date
+ns2 18:44:02.706 serial number (2026101401) received from primary 172.30.0.11#53 &lt; ours (2026102652)
+    (repetido a cada 9 a 10 s no ns2 e no ns3)
+após 40 s:  ns1 2026101401 -> 10.0.8.1   ns2 2026102652 -> 10.0.7.52   ns3 2026102652 -> 10.0.7.52
+correção (serial 2026102653): ns2 18:44:40.222 e ns3 18:44:40.523 transferred serial 2026102653</pre>
+<p><b>Resultado.</b> Previsão confirmada. O ns1 avisou que o serial voltou para trás, mas carregou e serviu a versão do
+arquivo. Os secundários receberam o NOTIFY e consultaram o SOA repetidamente, sempre concluindo que a versão do primário
+era mais antiga que a deles; mantiveram o valor 10.0.7.52. Durante esse tempo o mesmo nome teve respostas autoritativas
+diferentes conforme o servidor. Com o serial 2026102653 os três convergiram em menos de 1 s.</p>
+<p><b>Análise.</b> O coordenador é estático: o ns1 é primário por configuração, e não existe eleição — o que se
+compara é o serial, e não o servidor. O serial é um relógio lógico monotônico mantido por um único processo: as réplicas só
+avançam para versões maiores (aritmética da RFC 1982), exatamente como um relógio de Lamport nunca volta (Unidade 1).
+Isso dá uma ordem total às versões, mas não protege contra erro do operador: ao "voltar" o serial, o primário ficou
+inconsistente com as réplicas. Com dois primários editando a mesma zona sem coordenação, cada um incrementaria o próprio
+serial; versões diferentes poderiam ter o mesmo número ou números que não refletem a ordem real das alterações, e os
+secundários aceitariam a de maior serial, descartando a outra sem detectar o conflito — o serial é um contador escalar e
+não identifica concorrência, que exigiria um relógio vetorial (Unidade 1) ou um único escritor.</p>

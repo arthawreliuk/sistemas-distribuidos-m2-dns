@@ -1,0 +1,56 @@
+
+===== Coordenador: tipo da zona em cada servidor =====
+ns1: type: primary
+ns2: type: secondary
+ns3: type: secondary
+Primário declarado no SOA (MNAME): ns1.sd.lab.
+
+===== Antes =====
+172.31.0.11: serial 2026102652, app 10.0.7.52
+172.31.0.12: serial 2026102652, app 10.0.7.52
+172.31.0.13: serial 2026102652, app 10.0.7.52
+
+===== Publicação com serial MENOR (2026101401 < 2026102652) e app = 10.0.8.1 =====
+1793040238.298446291
+zone reload queued
+Logo após o reload:
+172.31.0.11: serial 2026101401, app 10.0.8.1
+172.31.0.12: serial 2026102652, app 10.0.7.52
+172.31.0.13: serial 2026102652, app 10.0.7.52
+
+===== Após 40 s (mais que um ciclo de refresh de 30 s) =====
+172.31.0.11: serial 2026101401, app 10.0.8.1
+172.31.0.12: serial 2026102652, app 10.0.7.52
+172.31.0.13: serial 2026102652, app 10.0.7.52
+
+===== Logs do ns1 =====
+26-Oct-2026 18:43:58.302 zone sd.lab/IN: zone serial (2026101401/2026102652) has gone backwards
+26-Oct-2026 18:43:58.302 zone sd.lab/IN: loaded serial 2026101401
+26-Oct-2026 18:43:58.303 zone sd.lab/IN: sending notifies (serial 2026101401)
+
+===== Logs do ns2 =====
+26-Oct-2026 18:43:58.304 client @0xffffac011350 172.30.0.11#36934: received notify for zone 'sd.lab'
+26-Oct-2026 18:43:58.304 zone sd.lab/IN: notify from 172.30.0.11#36934: zone is up to date
+26-Oct-2026 18:44:02.706 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+26-Oct-2026 18:44:12.710 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+26-Oct-2026 18:44:21.727 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+26-Oct-2026 18:44:30.729 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+26-Oct-2026 18:44:39.718 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+
+===== Logs do ns3 =====
+26-Oct-2026 18:43:58.814 client @0xffff876883f0 172.30.0.11#44148: received notify for zone 'sd.lab'
+26-Oct-2026 18:43:58.814 zone sd.lab/IN: notify from 172.30.0.11#44148: zone is up to date
+26-Oct-2026 18:44:03.210 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+26-Oct-2026 18:44:13.217 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+26-Oct-2026 18:44:22.225 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+26-Oct-2026 18:44:32.236 zone sd.lab/IN: serial number (2026101401) received from primary 172.30.0.11#53 < ours (2026102652)
+
+===== Correção: publicação com serial maior que o dos secundários =====
+zone reload queued
+172.31.0.11: serial 2026102653, app 10.0.8.2
+172.31.0.12: serial 2026102653, app 10.0.8.2
+172.31.0.13: serial 2026102653, app 10.0.8.2
+ns2: 26-Oct-2026 18:44:40.222 zone sd.lab/IN: transferred serial 2026102653
+ns3: 26-Oct-2026 18:44:40.523 zone sd.lab/IN: transferred serial 2026102653
+
+Evidências gravadas em evidencias/e8/e8-20261026-154356.txt
