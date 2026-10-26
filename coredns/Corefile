@@ -1,0 +1,11 @@
+# CoreDNS — servidor autoritativo da zona servicos.lab (E9, ênfase D).
+# A zona fica em um volume do Docker gravado pelo contêiner cliente; o plugin
+# file verifica o arquivo a cada 1 s e recarrega quando o serial do SOA aumenta.
+# O plugin prometheus expõe o contador de consultas recebidas em :9153.
+servicos.lab:53 {
+    file /zona/db.servicos.lab {
+        reload 1s
+    }
+    prometheus 0.0.0.0:9153
+    errors
+}

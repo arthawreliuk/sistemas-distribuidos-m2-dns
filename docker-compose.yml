@@ -43,9 +43,40 @@ services:
     hostname: cliente
     mem_limit: 32m
     command: ["sleep", "infinity"]
-    volumes: ["./scripts:/scripts:ro"]
+    volumes: ["./scripts:/scripts:ro", "zona-servicos:/zona-servicos"]
     networks: {clientes: {ipv4_address: 172.31.0.100}}
+
+  # ---- E9 (ênfase D): descoberta de serviços. Sobe com --profile e9 ----
+  coredns:
+    profiles: ["e9"]
+    image: coredns/coredns:1.11.3
+    container_name: coredns
+    mem_limit: 64m
+    command: ["-conf", "/etc/coredns/Corefile"]
+    volumes: ["./coredns/Corefile:/etc/coredns/Corefile:ro", "zona-servicos:/zona"]
+    networks: {clientes: {ipv4_address: 172.31.0.60}}
+
+  api1: &api                            # instâncias do serviço api.servicos.lab
+    profiles: ["e9"]
+    image: traefik/whoami:v1.10.3
+    container_name: api1
+    hostname: api1
+    mem_limit: 16m
+    networks: {clientes: {ipv4_address: 172.31.0.21}}
+  api2:
+    <<: *api
+    container_name: api2
+    hostname: api2
+    networks: {clientes: {ipv4_address: 172.31.0.22}}
+  api3:
+    <<: *api
+    container_name: api3
+    hostname: api3
+    networks: {clientes: {ipv4_address: 172.31.0.23}}
 
 networks:
   interna:  {ipam: {config: [{subnet: 172.30.0.0/24}]}}
   clientes: {ipam: {config: [{subnet: 172.31.0.0/24}]}}
+
+volumes:
+  zona-servicos:
