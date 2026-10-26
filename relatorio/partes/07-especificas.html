@@ -66,6 +66,6 @@ apenas no trecho entre cliente e resolvedor.</p>
   <tr><td>Líder ou coordenador e forma de escolha</td><td>Primário estático, definido na configuração; sem eleição (E5, E8).</td></tr>
   <tr><td>Mecanismo de ordenação ou versionamento</td><td>Serial do SOA, monotônico, comparado pela RFC 1982; secundários ignoram serial menor (E8).</td></tr>
   <tr><td>Comportamento sob partição (C ou A)</td><td>Até o expire, A: o nó isolado responde a versão antiga com autoridade. Depois do expire, deixa de responder (SERVFAIL). O lado do primário segue disponível e consistente (E6).</td></tr>
-  <tr><td>Mecanismo de recuperação</td><td>{{E7_QUADRO}}</td></tr>
+  <tr><td>Mecanismo de recuperação</td><td>Transferência de zona pedida pelo secundário ao detectar serial maior (IXFR com fallback para AXFR); cópia do estado atual, sem log. Partição de 40 s: 1,35 s em média; após o expire: 565,7 s (E7).</td></tr>
   <tr><td>Problemas clássicos presentes e como são tratados</td><td>Eleição e exclusão mútua evitadas (primário único); ordenação pelo serial; sem consenso; integridade contra respostas falsas pelo DNSSEC (Q13, S4).</td></tr>
 </table>

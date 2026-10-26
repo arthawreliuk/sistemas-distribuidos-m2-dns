@@ -1,0 +1,51 @@
+<h2>5.7. E7 — Recuperação</h2>
+<p><b>Objetivo.</b> Reconectar o nó isolado e medir o tempo até ele voltar ao estado do primário.</p>
+<p><b>Previsão inicial.</b> Reconectado, o ns3 consultaria o SOA na tentativa seguinte (retry de 10 s) e faria uma
+transferência, voltando ao serial do primário em até cerca de 10 s.</p>
+<p><b>Primeira execução (contrariou a previsão).</b> O ns3 foi reconectado ao fim do E6, com a zona já expirada, usando
+o mesmo IP (<code>docker network connect --ip 172.30.0.13</code>). Em 60 s ele não se recuperou, e o log mostrou o motivo:</p>
+<pre>18:23:52.781 listening on IPv4 interface eth1, 172.30.0.13#53          (reconectado)
+18:24:40.479 zone sd.lab/IN: refresh: skipping zone transfer as primary 172.30.0.11#53
+             is unreachable (cached)</pre>
+<p>Depois das falhas durante a partição, o secundário guarda o primário como inalcançável por um período e não tenta o
+refresh enquanto esse registro vale. Observado sem nenhuma intervenção (reconexão às 18:25:18,855), o ns3 só voltou a
+transferir às 18:34:44,512 — <b>565,7 s</b> depois — por transferência completa (9 registros), já que a zona havia
+expirado (<code>evidencias/e7/observacao-recuperacao-natural.txt</code>). A previsão foi revista e registrada antes da
+execução seguinte.</p>
+<p><b>Procedimento revisado.</b> <code>scripts/e7.sh 5 40 900</code>. Cada repetição parte do ns3 sincronizado,
+desconecta o ns3 da rede interna, publica uma versão nova no primário, espera 40 s (tempo suficiente para pelo menos uma
+verificação de refresh falhar), reconecta com o mesmo IP e mede, com uma sonda a cada 100 ms, o tempo até o ns3 servir o
+serial do primário. Cenário A: nada mais é feito. Cenário B: 2 s após a reconexão o primário publica outra versão, o que
+gera um NOTIFY. Cinco repetições por cenário.</p>
+<table>
+  <tr><th>Repetição</th><th>A: só reconexão (s)</th><th>B: reconexão + nova versão (s)</th></tr>
+  <tr><td>1</td><td class="n">0,367</td><td class="n">3,113</td></tr>
+  <tr><td>2</td><td class="n">0,186</td><td class="n">3,109</td></tr>
+  <tr><td>3</td><td class="n">2,142</td><td class="n">3,017</td></tr>
+  <tr><td>4</td><td class="n">0,992</td><td class="n">4,155</td></tr>
+  <tr><td>5</td><td class="n">3,069</td><td class="n">3,155</td></tr>
+  <tr><th>Média</th><th class="n">1,351</th><th class="n">3,310</th></tr>
+  <tr><th>Desvio padrão</th><th class="n">1,228</th><th class="n">0,475</th></tr>
+</table>
+<pre>rep 1 (A): 18:35:44.668 transfer of 'sd.lab/IN' from 172.30.0.11#53: resetting
+           18:35:44.669 zone sd.lab/IN: transferred serial 2026102638
+rep 2 (B): 18:40:38.170 zone sd.lab/IN: transferred serial 2026102645     (sozinho, após reconectar)
+           18:40:39.039 notify from 172.30.0.11#39359: serial 2026102646
+           18:40:39.040 zone sd.lab/IN: transferred serial 2026102646
+Estado final: ns1, ns2 e ns3 com serial 2026102652 e app 10.0.7.52</pre>
+<p><b>Resultado.</b> Nas dez repetições com partição de 40 s o ns3 recuperou o estado em segundos: média de 1,351 s
+(desvio 1,228 s) sem nenhuma ação, e de 3,310 s (desvio 0,475 s) no cenário B, cujo tempo inclui os 2 s de espera antes
+da nova publicação. Os logs mostram que, ao ser reconectado, o ns3 retomou a tentativa de transferência que estava em
+andamento (<code>resetting</code>) ou fez a próxima verificação logo em seguida; no cenário B ele já havia
+recuperado sozinho a versão perdida e o NOTIFY trouxe a versão seguinte. Em nenhuma partição de 40 s apareceu o
+registro de primário inalcançável; ele só apareceu após a partição longa do E6 (mais de 300 s, zona expirada), em que a
+recuperação levou 565,7 s. Ao final, os três autoritativos tinham o mesmo serial e o mesmo valor. A previsão revista
+para o cenário A (minutos) não se confirmou para partições curtas; a previsão inicial (segundos) se confirmou para
+elas.</p>
+<p><b>Análise.</b> O nó que volta não reaplica um histórico de operações: ele compara o serial do SOA com o do primário
+e copia o estado atual da zona — uma transferência que funciona como um snapshot da versão vigente (Unidade 4). Com o
+primário sem histórico de diferenças, a transferência foi sempre completa. O tempo de recuperação depende do mecanismo
+de detecção de falhas do secundário: após uma partição curta, ele recupera na tentativa seguinte; após uma partição
+longa, o secundário deixa de tentar por um período (o primário fica registrado como inalcançável), e a recuperação pode
+levar minutos se nada mais acontecer. A recuperação após uma partição é diferente de reiniciar o contêiner: o ns3 manteve
+a sua cópia (até o expire) e só buscou a versão nova.</p>

@@ -1,0 +1,100 @@
+
+===== Estado inicial =====
+172.31.0.11 serial 2026102637
+172.31.0.12 serial 2026102637
+172.31.0.13 serial 2026102637
+
+===== Cenário A — recuperação natural (partição de 40 s) =====
+  durante a partição: primário 2026102638, ns2 2026102638, ns3 2026102637
+rep 1 (natural): ns3 antes=2026102637, alvo=2026102638, reconectado em 1793039744.372338799, igualou em 1793039744.739139591 -> 0.367 s
+    log ns3: 26-Oct-2026 18:35:44.668 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:35:44.668 transfer of 'sd.lab/IN' from 172.30.0.11#53: resetting
+    log ns3: 26-Oct-2026 18:35:44.669 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:35:44.669 zone sd.lab/IN: transferred serial 2026102638
+    log ns3: 26-Oct-2026 18:35:44.670 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:35:44.670 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026102638)
+  durante a partição: primário 2026102639, ns2 2026102639, ns3 2026102638
+rep 2 (natural): ns3 antes=2026102638, alvo=2026102639, reconectado em 1793039791.705432126, igualou em 1793039791.891338460 -> 0.186 s
+    log ns3: 26-Oct-2026 18:36:31.691 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:36:31.692 zone sd.lab/IN: transferred serial 2026102639
+    log ns3: 26-Oct-2026 18:36:31.692 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:36:31.692 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026102639)
+  durante a partição: primário 2026102640, ns2 2026102640, ns3 2026102639
+rep 3 (natural): ns3 antes=2026102639, alvo=2026102640, reconectado em 1793039838.771373134, igualou em 1793039840.913276135 -> 2.142 s
+    log ns3: 26-Oct-2026 18:37:20.782 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:37:20.785 zone sd.lab/IN: transferred serial 2026102640
+    log ns3: 26-Oct-2026 18:37:20.785 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:37:20.785 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.003 secs (74666 bytes/sec) (serial 2026102640)
+  durante a partição: primário 2026102641, ns2 2026102641, ns3 2026102640
+rep 4 (natural): ns3 antes=2026102640, alvo=2026102641, reconectado em 1793039887.934263921, igualou em 1793039888.925915880 -> 0.992 s
+    log ns3: 26-Oct-2026 18:38:08.877 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:38:08.882 zone sd.lab/IN: transferred serial 2026102641
+    log ns3: 26-Oct-2026 18:38:08.882 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:38:08.882 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.005 secs (44800 bytes/sec) (serial 2026102641)
+  durante a partição: primário 2026102642, ns2 2026102642, ns3 2026102641
+rep 5 (natural): ns3 antes=2026102641, alvo=2026102642, reconectado em 1793039936.026716846, igualou em 1793039939.095566792 -> 3.069 s
+    log ns3: 26-Oct-2026 18:38:58.952 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:38:58.954 zone sd.lab/IN: transferred serial 2026102642
+    log ns3: 26-Oct-2026 18:38:58.954 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:38:58.954 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.002 secs (112000 bytes/sec) (serial 2026102642)
+
+===== Cenário B — reconexão seguida de nova versão no primário (NOTIFY) =====
+  durante a partição: primário 2026102643, ns2 2026102643, ns3 2026102642
+rep 1 (com_notify): ns3 antes=2026102642, alvo=2026102644, reconectado em 1793039985.966179591, igualou em 1793039989.079244968 -> 3.113 s
+    log ns3: 26-Oct-2026 18:39:48.805 zone sd.lab/IN: notify from 172.30.0.11#43342: serial 2026102644: refresh in progress, refresh check queued
+    log ns3: 26-Oct-2026 18:39:49.009 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:39:49.009 zone sd.lab/IN: transferred serial 2026102644
+    log ns3: 26-Oct-2026 18:39:49.010 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:39:49.010 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026102644)
+  durante a partição: primário 2026102645, ns2 2026102645, ns3 2026102644
+rep 2 (com_notify): ns3 antes=2026102644, alvo=2026102646, reconectado em 1793040036.079272587, igualou em 1793040039.188106921 -> 3.109 s
+    log ns3: 26-Oct-2026 18:40:38.132 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:40:38.170 zone sd.lab/IN: transferred serial 2026102645
+    log ns3: 26-Oct-2026 18:40:38.171 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:40:38.171 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.037 secs (6054 bytes/sec) (serial 2026102645)
+    log ns3: 26-Oct-2026 18:40:39.039 zone sd.lab/IN: notify from 172.30.0.11#39359: serial 2026102646
+    log ns3: 26-Oct-2026 18:40:39.039 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:40:39.040 zone sd.lab/IN: transferred serial 2026102646
+    log ns3: 26-Oct-2026 18:40:39.040 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:40:39.040 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026102646)
+  durante a partição: primário 2026102647, ns2 2026102647, ns3 2026102646
+rep 3 (com_notify): ns3 antes=2026102646, alvo=2026102648, reconectado em 1793040086.147465888, igualou em 1793040089.164614958 -> 3.017 s
+    log ns3: 26-Oct-2026 18:41:28.107 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:41:28.114 zone sd.lab/IN: transferred serial 2026102647
+    log ns3: 26-Oct-2026 18:41:28.117 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:41:28.117 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.009 secs (24888 bytes/sec) (serial 2026102647)
+    log ns3: 26-Oct-2026 18:41:29.039 zone sd.lab/IN: notify from 172.30.0.11#52706: serial 2026102648
+    log ns3: 26-Oct-2026 18:41:29.040 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:41:29.041 zone sd.lab/IN: transferred serial 2026102648
+    log ns3: 26-Oct-2026 18:41:29.041 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:41:29.041 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026102648)
+  durante a partição: primário 2026102649, ns2 2026102649, ns3 2026102648
+rep 4 (com_notify): ns3 antes=2026102648, alvo=2026102650, reconectado em 1793040136.115754591, igualou em 1793040140.270443343 -> 4.155 s
+    log ns3: 26-Oct-2026 18:42:18.972 zone sd.lab/IN: notify from 172.30.0.11#60550: serial 2026102650: refresh in progress, refresh check queued
+    log ns3: 26-Oct-2026 18:42:20.114 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:42:20.115 zone sd.lab/IN: transferred serial 2026102650
+    log ns3: 26-Oct-2026 18:42:20.115 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:42:20.115 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026102650)
+  durante a partição: primário 2026102651, ns2 2026102651, ns3 2026102650
+rep 5 (com_notify): ns3 antes=2026102650, alvo=2026102652, reconectado em 1793040187.187903837, igualou em 1793040190.343312672 -> 3.155 s
+    log ns3: 26-Oct-2026 18:43:08.168 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:43:08.170 zone sd.lab/IN: transferred serial 2026102651
+    log ns3: 26-Oct-2026 18:43:08.170 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:43:08.171 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.003 secs (74666 bytes/sec) (serial 2026102651)
+    log ns3: 26-Oct-2026 18:43:10.182 zone sd.lab/IN: notify from 172.30.0.11#45921: serial 2026102652
+    log ns3: 26-Oct-2026 18:43:10.184 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+    log ns3: 26-Oct-2026 18:43:10.184 zone sd.lab/IN: transferred serial 2026102652
+    log ns3: 26-Oct-2026 18:43:10.184 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+    log ns3: 26-Oct-2026 18:43:10.184 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.001 secs (224000 bytes/sec) (serial 2026102652)
+
+===== Estado final =====
+172.31.0.11: serial 2026102652, app 10.0.7.52
+172.31.0.12: serial 2026102652, app 10.0.7.52
+172.31.0.13: serial 2026102652, app 10.0.7.52
+
+===== Estatística (desvio padrão amostral, n - 1) =====
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+natural                          5      1.351       1.228    0.186    3.069
+com_notify                       5      3.310       0.475    3.017    4.155
+
+Dados brutos: resultados/e7.csv   Saída: evidencias/e7/e7-20261026-153501.txt

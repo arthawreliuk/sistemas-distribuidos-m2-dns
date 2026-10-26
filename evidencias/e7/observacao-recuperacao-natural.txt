@@ -57,3 +57,57 @@ reconexão do ns3: 18:25:18.855 UTC (log 'listening on IPv4 interface eth1'); pr
 18:30:34 ns3 serial=SERVFAIL
 18:30:39 ns3 serial=SERVFAIL
 18:30:44 ns3 serial=SERVFAIL
+18:30:50 ns3 serial=SERVFAIL
+18:30:55 ns3 serial=SERVFAIL
+18:31:00 ns3 serial=SERVFAIL
+18:31:05 ns3 serial=SERVFAIL
+18:31:10 ns3 serial=SERVFAIL
+18:31:16 ns3 serial=SERVFAIL
+18:31:21 ns3 serial=SERVFAIL
+18:31:26 ns3 serial=SERVFAIL
+18:31:31 ns3 serial=SERVFAIL
+18:31:36 ns3 serial=SERVFAIL
+18:31:42 ns3 serial=SERVFAIL
+18:31:47 ns3 serial=SERVFAIL
+18:31:52 ns3 serial=SERVFAIL
+18:31:57 ns3 serial=SERVFAIL
+18:32:02 ns3 serial=SERVFAIL
+18:32:07 ns3 serial=SERVFAIL
+18:32:13 ns3 serial=SERVFAIL
+18:32:18 ns3 serial=SERVFAIL
+18:32:23 ns3 serial=SERVFAIL
+18:32:28 ns3 serial=SERVFAIL
+18:32:33 ns3 serial=SERVFAIL
+18:32:39 ns3 serial=SERVFAIL
+18:32:44 ns3 serial=SERVFAIL
+18:32:49 ns3 serial=SERVFAIL
+18:32:54 ns3 serial=SERVFAIL
+18:32:59 ns3 serial=SERVFAIL
+18:33:04 ns3 serial=SERVFAIL
+18:33:10 ns3 serial=SERVFAIL
+18:33:15 ns3 serial=SERVFAIL
+18:33:20 ns3 serial=SERVFAIL
+18:33:25 ns3 serial=SERVFAIL
+18:33:30 ns3 serial=SERVFAIL
+18:33:36 ns3 serial=SERVFAIL
+18:33:41 ns3 serial=SERVFAIL
+18:33:46 ns3 serial=SERVFAIL
+18:33:51 ns3 serial=SERVFAIL
+18:33:56 ns3 serial=SERVFAIL
+18:34:01 ns3 serial=SERVFAIL
+18:34:07 ns3 serial=SERVFAIL
+18:34:12 ns3 serial=SERVFAIL
+18:34:17 ns3 serial=SERVFAIL
+18:34:22 ns3 serial=SERVFAIL
+18:34:27 ns3 serial=SERVFAIL
+18:34:33 ns3 serial=SERVFAIL
+18:34:38 ns3 serial=SERVFAIL
+18:34:43 ns3 serial=SERVFAIL
+18:34:48 ns3 serial=2026102637
+26-Oct-2026 18:25:18.855 listening on IPv4 interface eth1, 172.30.0.13#53
+26-Oct-2026 18:28:24.502 zone sd.lab/IN: refresh: skipping zone transfer as primary 172.30.0.11#53 (source 0.0.0.0#0) is unreachable (cached)
+26-Oct-2026 18:34:44.512 zone sd.lab/IN: Transfer started.
+26-Oct-2026 18:34:44.518 transfer of 'sd.lab/IN' from 172.30.0.11#53: connected using 172.30.0.11#53
+26-Oct-2026 18:34:44.523 zone sd.lab/IN: transferred serial 2026102637
+26-Oct-2026 18:34:44.525 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: success
+26-Oct-2026 18:34:44.525 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 1 messages, 9 records, 224 bytes, 0.007 secs (32000 bytes/sec) (serial 2026102637)

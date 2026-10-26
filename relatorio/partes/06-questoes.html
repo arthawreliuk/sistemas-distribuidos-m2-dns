@@ -97,7 +97,15 @@ réplicas sem coordenação, ao custo da janela de inconsistência medida no E4.
 o etcd como CP (sem quórum, não aceita escrita).</p>
 
 <p class="q">Q12. Como um nó que volta recupera o estado?</p>
-<p>{{E7_Q12}}</p>
+<p>Por <b>transferência de zona</b>, pedida pelo próprio secundário: ele compara o serial do SOA com o do
+primário e, se o do primário é maior, pede IXFR (só as diferenças); como o primário do laboratório carrega a zona de um
+arquivo e não guarda histórico de versões, a resposta foi sempre a zona inteira (AXFR). Não há reexecução de um log de
+operações: a transferência entrega o estado atual completo, como um snapshot da versão vigente. Diferente de um
+snapshot de Chandy-Lamport, não é preciso capturar mensagens em trânsito, porque só um processo (o primário) produz o
+estado e cada versão é identificada pelo serial (Unidade 4). No E7, após partições de 40 s, o ns3 recuperou o estado
+em 1,351 s em média; após a partição longa do E6, com a zona expirada, levou 565,7 s, porque o secundário passou a
+considerar o primário inalcançável e suspendeu as tentativas. Um nó novo faz o mesmo: carrega a zona inteira por AXFR,
+como os secundários no E1.</p>
 
 <p class="q">Q13. Quais problemas clássicos aparecem e como são resolvidos ou evitados?</p>
 <ul>
