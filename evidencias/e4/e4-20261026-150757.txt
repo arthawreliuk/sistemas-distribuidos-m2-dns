@@ -429,3 +429,45 @@ sd.lab.			20	IN	SOA	ns1.sd.lab. admin.sd.lab. 2026102631 30 10 300 20
 sd.lab.			20	IN	SOA	ns1.sd.lab. admin.sd.lab. 2026102632 30 10 300 20
 --- rep 5: novo5-151435.sd.lab criado (serial 2026102633) em 1793038476.561066337; TTL negativo restante no cache: 20 s
     autoritativo ns1 -> 10.0.5.5
+    resolvedor: 1793038478.296264880 18 NXDOMAIN
+    resolvedor: 1793038478.830234963 18 NXDOMAIN
+    resolvedor: 1793038479.373132630 17 NXDOMAIN
+    resolvedor: 1793038479.917124131 17 NXDOMAIN
+    resolvedor: 1793038480.455074964 16 NXDOMAIN
+    resolvedor: 1793038481.000809339 15 NXDOMAIN
+    resolvedor: 1793038481.532919881 15 NXDOMAIN
+    resolvedor: 1793038482.074752965 14 NXDOMAIN
+    resolvedor: 1793038482.617789465 14 NXDOMAIN
+    resolvedor: 1793038483.156836590 13 NXDOMAIN
+    resolvedor: 1793038483.695770299 13 NXDOMAIN
+    resolvedor: 1793038484.219767216 12 NXDOMAIN
+    resolvedor: 1793038484.755298049 12 NXDOMAIN
+    resolvedor: 1793038485.295590966 11 NXDOMAIN
+    resolvedor: 1793038485.834996800 11 NXDOMAIN
+    resolvedor: 1793038486.365369925 10 NXDOMAIN
+    resolvedor: 1793038486.890743800 10 NXDOMAIN
+    resolvedor: 1793038487.433209509 9 NXDOMAIN
+    resolvedor: 1793038487.974013551 9 NXDOMAIN
+    resolvedor: 1793038488.492037593 8 NXDOMAIN
+    resolvedor: 1793038489.032982468 7 NXDOMAIN
+    resolvedor: 1793038489.566247885 7 NXDOMAIN
+    resolvedor: 1793038490.107647552 6 NXDOMAIN
+    resolvedor: 1793038490.650975011 6 NXDOMAIN
+    resolvedor: 1793038491.195939178 5 NXDOMAIN
+    resolvedor: 1793038491.741072761 5 NXDOMAIN
+    resolvedor: 1793038492.289856303 4 NXDOMAIN
+    resolvedor: 1793038492.824932137 4 NXDOMAIN
+    resolvedor: 1793038493.348322554 3 NXDOMAIN
+    resolvedor: 1793038493.873370970 3 NXDOMAIN
+    resolvedor: 1793038494.428055221 2 NXDOMAIN
+    resolvedor: 1793038494.957588804 2 NXDOMAIN
+    resolvedor: 1793038495.631103596 1 NXDOMAIN
+    resolvedor: 1793038496.182983680 60 10.0.5.5
+    janela de NXDOMAIN em cache após a criação: 19.622 s (teórico: até 20 s)
+
+===== Estatística (desvio padrão amostral, n - 1) =====
+grupo                            n  média (s)  desvio (s)  mín (s)  máx (s)
+positivo                         5     27.912      15.817    7.897   47.773
+negativo                         5     19.424       0.323   19.079   19.870
+
+Dados brutos: resultados/e4.csv   Saída: evidencias/e4/e4-20261026-150757.txt

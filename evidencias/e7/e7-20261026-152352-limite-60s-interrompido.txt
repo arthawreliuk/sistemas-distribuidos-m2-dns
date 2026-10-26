@@ -1,0 +1,8 @@
+
+===== Repetição 0: recuperação após o expire (continuação do E6) =====
+rep 0 (apos_expire): ns3 antes=SERVFAIL, primário=2026102636, reconectado em 1793039032.893241512, igualou em NAO_ATUALIZOU -> NAO_ATUALIZOU s
+    endereço interno do ns3: 172.30.0.13/24
+    log ns3: 26-Oct-2026 18:24:40.479 zone sd.lab/IN: refresh: skipping zone transfer as primary 172.30.0.11#53 (source 0.0.0.0#0) is unreachable (cached)
+
+===== Repetição 1: partição de 20 s =====
+durante a partição: ns2 serial 2026102637, ns3 serial 

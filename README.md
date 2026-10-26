@@ -3,8 +3,7 @@
 **Tema T1 — Sistema de nomes distribuído (DNS)** · **Ênfase D — Descoberta de serviços (cloud native)**
 
 Laboratório local com BIND 9 em contêineres leves (Docker Compose), seguindo a seção 5.2 do
-roteiro do Prof. Ramices dos Santos Silva. A ênfase D (E9, CoreDNS) será adicionada depois dos
-experimentos E1–E8.
+roteiro do Prof. Ramices dos Santos Silva, e CoreDNS para a ênfase D (E9).
 
 ## Requisitos
 - Docker com Compose v2+ (testado: Docker Desktop 29.4.3 / Compose v5.1.3, macOS 26.4.1, Apple M3).
@@ -28,23 +27,39 @@ Diagrama: [`diagramas/topologia.svg`](diagramas/topologia.svg).
 ## Como executar
 
 ```bash
-docker compose build          # imagem sd-bind: alpine:3.20 + bind 9.18
-./scripts/e1.sh               # sobe o ambiente e grava evidências em evidencias/e1/
+docker compose build            # imagem sd-bind: alpine:3.20 + bind 9.18 + coreutils
+./scripts/e1.sh                 # sobe o laboratório e grava evidências em evidencias/e1/
+./scripts/e2.sh                 # caminho de leitura e de escrita
+./scripts/e3.sh 5 8             # propagação com e sem NOTIFY (5 repetições, 8 s entre elas)
+./scripts/e4.sh 5               # cache, TTL e cache negativo
+./scripts/e5.sh                 # falha de 1 e 2 servidores
+./scripts/e6.sh                 # partição do ns3 (rede interna) até o expire; deixa o ns3 isolado
+./scripts/e7.sh 5 20            # reconexão do ns3 e 5 partições curtas de 20 s
+./scripts/e8.sh                 # publicação com serial menor
+docker compose --profile e9 up -d   # CoreDNS + instâncias api1..api3
+./scripts/e9.sh 5 60            # descoberta de serviços: TTL 5 s x 60 s
+./scripts/demo.sh               # demonstração ao vivo do seminário (avança com ENTER)
 ```
+
+Cada script grava a saída completa em `evidencias/eN/` e as medições em `resultados/*.csv`.
+A previsão de cada experimento está em `evidencias/eN/PREVISAO.md` (commitada antes da execução).
+Os scripts usam apenas `docker` e `python3` (biblioteca padrão) no host.
 
 Consultas manuais (sempre com `@IP` explícito, para não usar o DNS interno do Docker 127.0.0.11):
 
 ```bash
 docker exec cliente dig @172.31.0.11 sd.lab SOA +short     # direto no primário
 docker exec cliente dig @172.31.0.53 app.sd.lab            # via resolvedor (cache)
-docker exec ns1 rndc reload sd.lab                         # após editar zonas/db.sd.lab e incrementar o serial
 ```
+
+Para alterar a zona manualmente, use as funções de `scripts/lib.sh` (`escreve_zona`, `recarrega`):
+elas gravam o arquivo de dentro do ns1, incrementam o serial e conferem se o primário carregou a versão.
 
 Encerrar:
 
 ```bash
-docker compose stop    # para os contêineres; os secundários mantêm a cópia da zona
-docker compose down    # remove contêineres e redes do projeto; secundários recomeçam sem zona
+docker compose --profile e9 stop    # para os contêineres; os secundários mantêm a cópia da zona
+docker compose --profile e9 down    # remove contêineres e redes do projeto (use -v para o volume do E9)
 ```
 
 `docker compose down` afeta apenas o projeto `sdm2dns`. Não use `docker system prune`.
@@ -52,21 +67,21 @@ docker compose down    # remove contêineres e redes do projeto; secundários re
 ## Estrutura
 ```
 Dockerfile, docker-compose.yml   ambiente
-ns1/ ns2/ ns3/ resolvedor/       named.conf de cada servidor
+ns1/ ns2/ ns3/ resolvedor/       named.conf de cada servidor (ns1/named-semnotify.conf: E3)
+coredns/Corefile                 CoreDNS do E9
 zonas/db.sd.lab                  zona do primário (montada em ns1:/var/lib/bind)
 scripts/                         um script por experimento
 evidencias/eN/                   PREVISAO.md (antes), saídas brutas, RESULTADO.md (depois)
 diagramas/                       diagramas próprios
+resultados/                      medições brutas (CSV)
+relatorio/                       relatório (partes HTML -> relatorio.pdf)
 ```
 
 ## Situação dos experimentos
 
-| Exp. | Situação |
-|---|---|
-| E1 Subida e topologia | **Executado** em 21/10/2026: [`evidencias/e1/RESULTADO.md`](evidencias/e1/RESULTADO.md) |
-| E2–E8 | Não executados |
-| E9 (ênfase D, CoreDNS) | Não executado |
+Todos executados em 21/10/2026 (E1) e 26/10/2026 (E2 a E9); análise no relatório.
 
 ## Adaptações em relação ao roteiro
-Estão documentadas e justificadas em [`evidencias/e1/RESULTADO.md`](evidencias/e1/RESULTADO.md#adaptações-em-relação-aos-trechos-do-roteiro-justificadas).
-Resumo: chave `rndc` gerada na imagem, `notify explicit` no primário, `notify no` nos secundários e nome de projeto fixo.
+Chave `rndc` gerada na imagem; `notify explicit` no primário (NOTIFY só pela rede interna); `notify no`
+nos secundários; nome de projeto fixo (`sdm2dns`); zona gravada de dentro do ns1 com conferência do serial após
+cada `rndc reload`; `coreutils` para medir tempo com frações de segundo. Detalhes no relatório, seção 4.

@@ -1,0 +1,35 @@
+<h2>5.6. E6 — Partição de rede</h2>
+<p><b>Objetivo.</b> Isolar um nó do restante mantendo-o acessível ao cliente e observar os dois lados da partição.</p>
+<p><b>Previsão.</b> Uma alteração chega ao ns2 e não ao ns3; o ns3 continua respondendo a versão antiga, com autoridade,
+até o expire; depois passa a responder SERVFAIL. O resolvedor continua respondendo pelos outros servidores.</p>
+<p><b>Procedimento.</b> <code>scripts/e6.sh</code>: <code>docker network disconnect sdm2dns_interna ns3</code> (só a rede
+interna), confirmação de que o ns3 não alcança o ns1 e de que o cliente alcança o ns3, publicação de uma versão nova no
+primário e consultas a ns2 e ns3 a cada 15 s por cerca de 6 minutos.</p>
+<pre>$ docker network disconnect sdm2dns_interna ns3          (18:16:53 UTC)
+ns3 -> ns1 pela rede interna:   ;; communications error to 172.30.0.11#53: timed out
+cliente -> ns3:                 ns1.sd.lab. admin.sd.lab. 2026102635 30 10 300 20
+ns3: serial 2026102635  expires: Mon, 26 Oct 2026 18:21:36 GMT
+alteração no primário: serial 2026102636, app 10.0.6.36
+log ns3: 18:17:36.979 refresh: retry limit for primary 172.30.0.11#53 exceeded
+         18:18:07.017 transfer of 'sd.lab/IN' from 172.30.0.11#53: failed to connect: timed out
+         ... (nova tentativa a cada 30 s, aproximadamente)
+         18:21:36.918 zone sd.lab/IN: expired
+resolvedor durante a partição (3 consultas com cache vazio): NOERROR, 10.0.6.36</pre>
+<table>
+  <tr><th>Tempo desde a partição</th><th>ns2 (lado do primário)</th><th>ns3 (isolado)</th></tr>
+  <tr><td>7 s a 276 s (18 consultas)</td><td>NOERROR, serial 2026102636, app 10.0.6.36</td><td>NOERROR, serial 2026102635, app 10.0.5.35 (versão antiga)</td></tr>
+  <tr><td>292 s em diante</td><td>NOERROR, serial 2026102636, app 10.0.6.36</td><td>SERVFAIL (deixou de responder pela zona)</td></tr>
+</table>
+<p><b>Resultado.</b> Previsão confirmada. O cliente continuou alcançando o ns3 pela rede de clientes, e o ns3 deixou de alcançar o
+primário. A versão nova chegou ao ns2 e não ao ns3. Por 276 s, os dois lados responderam com autoridade valores
+diferentes para o mesmo nome. O ns3 tentou o refresh repetidamente (cerca de uma vez a cada 30 s) e registrou a
+expiração da zona às 18:21:36,918, exatamente o instante previsto pelo <code>rndc zonestatus</code> (último refresh
+bem-sucedido + 300 s), 283,6 s depois da partição. A partir daí passou a responder SERVFAIL. O resolvedor respondeu o
+valor novo durante toda a partição, porque tinha encaminhadores do lado do primário.</p>
+<p><b>Análise.</b> O DNS escolhe as duas coisas em momentos diferentes. Até o expire, o lado isolado prioriza
+a <b>disponibilidade</b>: responde sem conseguir confirmar se a cópia é a mais recente, aceitando servir um valor
+desatualizado (inconsistência entre réplicas). Depois do expire, prioriza a <b>consistência</b> no sentido de não servir
+dados possivelmente velhos: fica indisponível para a zona (SERVFAIL) em vez de responder errado. O expire é o limite,
+configurado pelo administrador, de quanto tempo de desatualização se aceita. O lado do primário (ns1, ns2) continua
+disponível e consistente, inclusive para escrita. Para o cliente que usa um resolvedor com vários encaminhadores, a
+partição foi invisível: ele foi atendido pelo lado majoritário.</p>

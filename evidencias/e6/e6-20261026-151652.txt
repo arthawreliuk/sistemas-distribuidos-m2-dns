@@ -1,0 +1,84 @@
+
+===== Estado inicial =====
+sdm2dns_clientes
+sdm2dns_interna
+172.31.0.11 serial 2026102635
+172.31.0.12 serial 2026102635
+172.31.0.13 serial 2026102635
+lo 127.0.0.1/8
+eth0 172.31.0.13/24
+eth1 172.30.0.13/24
+
+===== Partição: docker network disconnect sdm2dns_interna ns3 =====
+desconectado em 1793038613.311863804
+lo 127.0.0.1/8
+eth0 172.31.0.13/24
+ns3 -> ns1 pela rede interna (deve falhar):
+;; communications error to 172.30.0.11#53: timed out
+
+cliente -> ns3 pela rede de clientes (deve funcionar):
+ns1.sd.lab. admin.sd.lab. 2026102635 30 10 300 20
+ns3: serial: 2026102635 expires: Mon, 26 Oct 2026 18:21:36 GMT 
+
+===== Alteração no primário durante a partição =====
+serial 2026102636, app 10.0.6.36, reload em 1793038616.489164222
+172.31.0.11: serial 2026102636, app 10.0.6.36
+172.31.0.12: serial 2026102636, app 10.0.6.36
+172.31.0.13: serial 2026102635, app 10.0.5.35
+
+===== Observação até o expire (consulta a cada 15 s) =====
+instante | s desde a partição | ns2 (status serial app) | ns3 (status serial app)
+1793038620.699101459 | 7 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038636.375901217 | 23 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038652.243026960 | 39 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038668.040963509 | 55 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038683.888811336 | 71 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038699.683190593 | 86 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038715.487251462 | 102 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038731.320864719 | 118 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038747.106950087 | 134 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038762.841500970 | 150 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038778.533657463 | 165 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038794.286842804 | 181 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038810.232589922 | 197 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038825.954284221 | 213 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038841.719541715 | 228 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038857.628814333 | 244 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038873.423839965 | 260 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038889.246899125 | 276 | NOERROR 2026102636 10.0.6.36 | NOERROR 2026102635 10.0.5.35
+1793038905.033202216 | 292 | NOERROR 2026102636 10.0.6.36 | SERVFAIL - -
+1793038920.757551043 | 307 | NOERROR 2026102636 10.0.6.36 | SERVFAIL - -
+1793038936.480392467 | 323 | NOERROR 2026102636 10.0.6.36 | SERVFAIL - -
+1793038952.213560752 | 339 | NOERROR 2026102636 10.0.6.36 | SERVFAIL - -
+1793038968.014938051 | 355 | NOERROR 2026102636 10.0.6.36 | SERVFAIL - -
+1793038983.854880961 | 371 | NOERROR 2026102636 10.0.6.36 | SERVFAIL - -
+1793038999.760193010 | 386 | NOERROR 2026102636 10.0.6.36 | SERVFAIL - -
+1793039015.657517212 | 402 | NOERROR 2026102636 10.0.6.36 | SERVFAIL - -
+
+===== Logs do ns3 durante a partição =====
+26-Oct-2026 18:16:56.128 received control channel command 'zonestatus sd.lab'
+26-Oct-2026 18:17:36.979 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+26-Oct-2026 18:17:36.980 zone sd.lab/IN: Transfer started.
+26-Oct-2026 18:18:07.017 transfer of 'sd.lab/IN' from 172.30.0.11#53: failed to connect: timed out
+26-Oct-2026 18:18:07.017 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: timed out
+26-Oct-2026 18:18:07.017 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 0 messages, 0 records, 0 bytes, 30.034 secs (0 bytes/sec) (serial 0)
+26-Oct-2026 18:18:37.595 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+26-Oct-2026 18:18:37.596 zone sd.lab/IN: Transfer started.
+26-Oct-2026 18:19:07.611 transfer of 'sd.lab/IN' from 172.30.0.11#53: failed to connect: timed out
+26-Oct-2026 18:19:07.611 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer status: timed out
+26-Oct-2026 18:19:07.611 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed: 0 messages, 0 records, 0 bytes, 30.014 secs (0 bytes/sec) (serial 0)
+26-Oct-2026 18:19:38.163 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+26-Oct-2026 18:20:08.726 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+26-Oct-2026 18:20:39.294 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+26-Oct-2026 18:21:09.868 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+26-Oct-2026 18:21:36.918 zone sd.lab/IN: expired
+26-Oct-2026 18:21:55.466 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+26-Oct-2026 18:22:26.032 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+26-Oct-2026 18:23:19.566 zone sd.lab/IN: refresh: retry limit for primary 172.30.0.11#53 exceeded (source 0.0.0.0#0)
+
+===== Resolvedor durante a partição (cache vazio, 3 consultas) =====
+status NOERROR, valor 10.0.6.36 
+status NOERROR, valor 10.0.6.36 
+status NOERROR, valor 10.0.6.36 
+
+ns3 continua isolado da rede interna. Evidências: evidencias/e6/e6-20261026-151652.txt

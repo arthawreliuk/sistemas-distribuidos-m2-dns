@@ -1,0 +1,59 @@
+<h1>4. Ambiente e reprodutibilidade</h1>
+<p>Todo o laboratório roda em contêineres leves com Docker Compose, em um único computador, sem máquinas virtuais
+adicionais. No macOS o Docker Desktop executa os contêineres dentro de uma máquina virtual Linux própria; todos os
+contêineres compartilham o kernel e o relógio dessa máquina.</p>
+<table>
+  <tr><th>Item</th><th>Versão / característica</th></tr>
+  <tr><td>Hardware</td><td>MacBook Air, Apple M3 (arm64), 16 GB de RAM</td></tr>
+  <tr><td>Sistema</td><td>macOS 26.4.1; Docker Desktop 29.4.3 (8 CPUs e 7,75 GiB destinados ao Docker); Docker Compose v5.1.3</td></tr>
+  <tr><td>Imagem dos servidores BIND e do cliente</td><td><code>sd-bind</code>, construída pela equipe: Alpine Linux 3.20.10 + BIND 9.18.49 (ESV) + bind-tools (dig, nsupdate) + coreutils</td></tr>
+  <tr><td>E9</td><td><code>coredns/coredns:1.11.3</code> e <code>traefik/whoami:v1.10.3</code> (servidor HTTP mínimo que representa as instâncias do serviço)</td></tr>
+  <tr><td>Medições</td><td>scripts em shell; estatística em Python 3.9 (biblioteca padrão)</td></tr>
+</table>
+
+<table>
+  <tr><th>Nó</th><th>Papel</th><th>Rede interna (172.30.0.0/24)</th><th>Rede de clientes (172.31.0.0/24)</th><th>Portas</th><th>Memória</th></tr>
+  <tr><td>ns1</td><td>primário autoritativo de <code>sd.lab</code></td><td>172.30.0.11</td><td>172.31.0.11</td><td>53 UDP/TCP</td><td>limite 128 MB</td></tr>
+  <tr><td>ns2</td><td>secundário autoritativo</td><td>172.30.0.12</td><td>172.31.0.12</td><td>53 UDP/TCP</td><td>limite 128 MB</td></tr>
+  <tr><td>ns3</td><td>secundário autoritativo</td><td>172.30.0.13</td><td>172.31.0.13</td><td>53 UDP/TCP</td><td>limite 128 MB</td></tr>
+  <tr><td>resolvedor</td><td>recursivo com cache</td><td>—</td><td>172.31.0.53</td><td>53 UDP/TCP</td><td>limite 128 MB</td></tr>
+  <tr><td>cliente</td><td>executa <code>dig</code> e as sondas</td><td>—</td><td>172.31.0.100</td><td>—</td><td>limite 32 MB</td></tr>
+  <tr><td>coredns (E9)</td><td>autoritativo de <code>servicos.lab</code></td><td>—</td><td>172.31.0.60</td><td>53; 9153 (métricas)</td><td>limite 64 MB</td></tr>
+  <tr><td>api1, api2, api3 (E9)</td><td>instâncias do serviço</td><td>—</td><td>172.31.0.21 a .23</td><td>80 (HTTP)</td><td>limite 16 MB</td></tr>
+</table>
+<p>Memória medida com <code>docker stats</code> no E1: cerca de 26 MiB por servidor BIND, aproximadamente 104 MiB no
+total do laboratório-base. O canal de controle <code>rndc</code> escuta apenas em 127.0.0.1:953 de cada contêiner.</p>
+
+<div class="fig">
+  <p class="legenda">Figura 2 — Topologia do laboratório</p>
+  <img src="../diagramas/topologia-pb.png" alt="Topologia do laboratório">
+  <p class="fonte">Fonte: elaborado pelos autores (2026).</p>
+</div>
+
+<p>A zona <code>sd.lab</code> usa os valores do roteiro: TTL 60 s, serial inicial 2026101401, refresh 30 s, retry 10 s,
+expire 300 s e TTL negativo 20 s. Os secundários usam <code>min-refresh-time 10</code> e <code>min-retry-time 5</code>
+para que esses temporizadores curtos sejam aceitos.</p>
+
+<h3>Repositório e execução</h3>
+<p>Repositório Git: <b>[LINK DO REPOSITÓRIO]</b>. Para reproduzir:</p>
+<pre>git clone [LINK DO REPOSITÓRIO] trabalho-m2-dns && cd trabalho-m2-dns
+docker compose build                # imagem sd-bind
+./scripts/e1.sh                     # sobe o laboratório e grava evidências
+./scripts/e2.sh ... ./scripts/e8.sh # um script por experimento
+docker compose --profile e9 up -d   # CoreDNS e instâncias api1..api3
+./scripts/e9.sh
+docker compose --profile e9 down    # remove só o que é do projeto</pre>
+<p>Cada script registra a saída completa em <code>evidencias/eN/</code> e os dados das medições em
+<code>resultados/*.csv</code>. A previsão de cada experimento está em <code>evidencias/eN/PREVISAO.md</code>, gravada no
+Git antes da execução.</p>
+
+<h3>Adaptações em relação aos trechos do roteiro</h3>
+<ul>
+  <li>A chave do <code>rndc</code> é gerada na construção da imagem; sem ela, o <code>rndc reload</code> usado no roteiro não funciona.</li>
+  <li>O primário usa <code>notify explicit</code> com <code>also-notify</code> nos endereços internos, para que NOTIFY e
+  transferências passem só pela rede interna, condição para o E6. Os secundários usam <code>notify no</code>.</li>
+  <li>O arquivo da zona é gravado de dentro do contêiner ns1 e cada <code>rndc reload</code> é conferido com uma consulta
+  ao SOA. Na primeira execução do E2, um reload feito logo após gravar o arquivo pelo macOS não carregou a nova versão;
+  o roteiro já alerta para conferir o serial após cada alteração.</li>
+  <li><code>coreutils</code> na imagem, para medir tempo com frações de segundo (<code>date +%s.%N</code>).</li>
+</ul>

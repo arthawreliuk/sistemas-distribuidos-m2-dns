@@ -1,0 +1,56 @@
+<h1 class="nova">9. Limitações e ameaças à validade</h1>
+<ul>
+  <li><b>Um único computador.</b> Os nove contêineres compartilham CPU, memória, disco e kernel da mesma máquina virtual
+  do Docker Desktop. Parar um contêiner não reproduz uma falha física independente (energia, disco, hardware).</li>
+  <li><b>Rede local virtual.</b> As latências entre contêineres são de milissegundos ou menos. Em uma rede real, com
+  servidores em locais diferentes, os tempos de propagação e de consulta seriam maiores e mais variáveis.</li>
+  <li><b>Relógio único.</b> Todos os contêineres usam o mesmo relógio, o que permitiu comparar instantes entre nós.
+  Em servidores reais os relógios divergem (Unidade 1) e essa comparação teria erro.</li>
+  <li><b>Partição simulada.</b> No E6 a partição foi feita removendo a interface de rede interna do ns3
+  (<code>docker network disconnect</code>). Uma partição real pode ser parcial, assimétrica ou intermitente.</li>
+  <li><b>Resolução das medições.</b> As sondas consultam a cada 100 ms (E3, E7) ou 500 ms (E4); cada consulta leva alguns
+  milissegundos. Tempos menores que essa resolução não são distinguíveis.</li>
+  <li><b>Temporizadores reduzidos.</b> TTL de 60 s, refresh de 30 s e expire de 300 s foram escolhidos para os fenômenos
+  aparecerem durante a aula; na Internet são comuns valores de horas ou dias.</li>
+  <li><b>Escala.</b> Um resolvedor e um cliente não representam a carga de milhões de clientes nem a hierarquia real
+  (raiz e TLD não foram montados; o resolvedor encaminha diretamente aos autoritativos de <code>sd.lab</code>).</li>
+  <li><b>Escrita administrativa.</b> As escritas foram feitas editando o arquivo da zona no primário. A atualização
+  dinâmica (RFC 2136) não foi habilitada; só foi usada para mostrar que os secundários a recusam.</li>
+  <li><b>E9 sem Kubernetes.</b> O registro das instâncias foi atualizado pelo script, e não por um controlador que
+  detecta a falha. O tempo entre a morte de uma instância e a sua remoção do registro, que no Kubernetes depende das
+  sondas de saúde, não foi medido.</li>
+</ul>
+
+<h1>10. Papel de cada integrante</h1>
+<table>
+  <tr><th>Integrante</th><th>Pesquisa</th><th>Experimentos</th><th>Escrita</th></tr>
+  <tr><td>Guilherme Mohr dos Santos</td><td>Pesquisa sobre o DNS e primeira versão das respostas Q1 a Q14 e S1 a S4</td><td>—</td><td>Estrutura do documento (capa e questionário)</td></tr>
+  <tr><td>Arthur Rodrigues Hawreliuk</td><td>Leitura do roteiro e da documentação do BIND e do CoreDNS</td><td>Montagem do laboratório, execução de E1 a E9 e medições</td><td>Seções de ambiente e experimentos; revisão das respostas com base nos resultados</td></tr>
+</table>
+
+<h1>11. Declaração de uso de IA generativa</h1>
+<p>A equipe usou o assistente Claude (Anthropic) como apoio na escrita dos arquivos de configuração e dos scripts do
+laboratório, na organização das medições e na revisão do texto deste relatório. Todos os experimentos foram executados
+no ambiente descrito na Seção 4; os resultados apresentados vêm das saídas registradas em <code>evidencias/</code> e
+<code>resultados/</code> no repositório. As respostas foram conferidas com o material da disciplina, o roteiro do
+trabalho e as referências listadas.</p>
+
+<h1>12. Referências</h1>
+<div class="ref">
+<p>ANDREWS, M. <b>RFC 2308</b>: Negative caching of DNS queries (DNS NCACHE). IETF, 1998. Disponível em: https://www.rfc-editor.org/rfc/rfc2308. Acesso em: 26 out. 2026.</p>
+<p>COREDNS. <b>CoreDNS manual</b>. 2024. Disponível em: https://coredns.io/manual/toc/. Acesso em: 26 out. 2026.</p>
+<p>COULOURIS, G.; DOLLIMORE, J.; KINDBERG, T.; BLAIR, G. <b>Sistemas distribuídos</b>: conceitos e projeto. 5. ed. Porto Alegre: Bookman, 2013.</p>
+<p>ELZ, R.; BUSH, R. <b>RFC 1982</b>: Serial number arithmetic. IETF, 1996. Disponível em: https://www.rfc-editor.org/rfc/rfc1982. Acesso em: 26 out. 2026.</p>
+<p>INTERNET SYSTEMS CONSORTIUM. <b>BIND 9 Administrator Reference Manual</b>. Versão 9.18. Disponível em: https://bind9.readthedocs.io. Acesso em: 26 out. 2026.</p>
+<p>KUBERNETES. <b>DNS for Services and Pods</b>. 2024. Disponível em: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/. Acesso em: 26 out. 2026.</p>
+<p>LAMPORT, L. Time, clocks, and the ordering of events in a distributed system. <b>Communications of the ACM</b>, v. 21, n. 7, p. 558-565, 1978.</p>
+<p>MOCKAPETRIS, P. <b>RFC 1034</b>: Domain names: concepts and facilities. IETF, 1987a. Disponível em: https://www.rfc-editor.org/rfc/rfc1034. Acesso em: 26 out. 2026.</p>
+<p>MOCKAPETRIS, P. <b>RFC 1035</b>: Domain names: implementation and specification. IETF, 1987b. Disponível em: https://www.rfc-editor.org/rfc/rfc1035. Acesso em: 26 out. 2026.</p>
+<p>MOCKAPETRIS, P.; DUNLAP, K. J. Development of the Domain Name System. In: ACM SIGCOMM, 1988, Stanford. <b>Proceedings</b> [...]. New York: ACM, 1988. p. 123-133.</p>
+<p>OHTA, M. <b>RFC 1995</b>: Incremental zone transfer in DNS. IETF, 1996. Disponível em: https://www.rfc-editor.org/rfc/rfc1995. Acesso em: 26 out. 2026.</p>
+<p>SILVA, R. S. <b>Sistemas Distribuídos</b>: slides das Unidades 1 a 4. Itajaí: UNIVALI, 2026. Material de aula.</p>
+<p>SILVA, R. S. <b>Trabalho 2</b>: Sistemas distribuídos reais na prática: pesquisa, experimentos e seminário. Itajaí: UNIVALI, 2026. Roteiro da disciplina de Sistemas Distribuídos.</p>
+<p>TANENBAUM, A. S.; VAN STEEN, M. <b>Distributed systems</b>. 4. ed. 2023. Disponível em: https://www.distributed-systems.net. Acesso em: 26 out. 2026.</p>
+<p>VIXIE, P. <b>RFC 1996</b>: A mechanism for prompt notification of zone changes (DNS NOTIFY). IETF, 1996. Disponível em: https://www.rfc-editor.org/rfc/rfc1996. Acesso em: 26 out. 2026.</p>
+<p>VIXIE, P.; THOMSON, S.; REKHTER, Y.; BOUND, J. <b>RFC 2136</b>: Dynamic updates in the Domain Name System (DNS UPDATE). IETF, 1997. Disponível em: https://www.rfc-editor.org/rfc/rfc2136. Acesso em: 26 out. 2026.</p>
+</div>

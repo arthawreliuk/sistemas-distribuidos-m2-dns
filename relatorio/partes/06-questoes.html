@@ -1,0 +1,124 @@
+<h1 class="nova">6. Questões comuns (Q1 a Q14)</h1>
+
+<p class="q">Q1. Que problema de sistemas distribuídos o sistema resolve? Quais transparências oferece?</p>
+<p>O DNS resolve o problema de localizar recursos em uma rede de escala mundial: traduzir nomes estáveis e legíveis em
+endereços que mudam, sem um diretório central. Transparências (Unidade 1): <b>localização</b> — o usuário usa
+<code>www.univali.br</code> sem saber onde o servidor está nem em qual endereço; <b>acesso</b> — o mesmo nome e a
+mesma consulta funcionam para qualquer domínio, administrado por qualquer organização; <b>replicação</b> — a zona tem
+várias cópias (no laboratório, ns1, ns2 e ns3) e o cliente não sabe qual respondeu (no E2 a resposta veio do ns3);
+<b>falha</b> — com até dois dos três autoritativos parados, as leituras continuaram (E5). A transparência de falha não
+é total: o resolvedor levou cerca de 1,2 s para responder com o ns1 parado (E5), e a transparência de replicação
+também não, porque réplicas e caches podem devolver versões diferentes por um tempo (E4, E6). Concorrência não
+é um problema relevante para o cliente, que só lê.</p>
+
+<p class="q">Q2. Qual é a arquitetura? Estilo, componentes e papéis.</p>
+<p>A arquitetura de sistema é <b>cliente-servidor</b> em todos os saltos, no modelo requisição-resposta (Unidade 2): o
+cliente é cliente do resolvedor, e o resolvedor é cliente dos autoritativos. A comunicação entre os servidores de uma
+zona também é cliente-servidor, e não peer-to-peer: os papéis são fixos e assimétricos — o secundário pede (SOA, IXFR,
+AXFR) e o primário serve; o NOTIFY é só um aviso do primário. A organização do espaço de nomes é <b>hierárquica e em
+camadas de delegação</b> (raiz, TLD, domínios), e o <b>cache</b> do resolvedor faz o papel de proxy com cache da
+Unidade 2. Componentes e papéis: primário (aceita escritas), secundários (réplicas somente leitura), resolvedor
+recursivo (cache) e clientes. Diagrama próprio na Figura 1; topologia do laboratório na Figura 2.</p>
+
+<p class="q">Q3. Como um cliente localiza um dado ou serviço?</p>
+<p>Pela <b>resolução hierárquica</b>, nem por diretório central nem por cálculo (hash). Com cache frio, o resolvedor
+recursivo pergunta a um servidor raiz, que devolve os servidores NS do TLD; o TLD devolve os NS autoritativos do
+domínio; o autoritativo devolve o registro com um TTL; o resolvedor guarda tudo em cache e responde ao cliente
+(Unidade 4). Perguntas seguintes, dentro do TTL, são respondidas do cache sem tocar a hierarquia (E2: a segunda
+consulta saiu do cache com TTL 58). No laboratório o resolvedor encaminha <code>sd.lab</code> diretamente aos três
+autoritativos (<code>forward only</code>), sem raiz e TLD.</p>
+
+<p class="q">Q4. Como os nós se comunicam?</p>
+<p>Por troca de mensagens diretas sobre sockets (Unidades 2 e 3), em formato binário próprio do DNS (RFC 1035), na porta 53.
+Consultas usam principalmente <b>UDP</b>: uma requisição e uma resposta, comunicação síncrona do ponto de vista do cliente,
+que espera a resposta. Transferências de zona usam <b>TCP</b>, pelo volume e pela necessidade de entrega confiável e ordenada.
+Quanto à semântica de entrega (Unidade 3), é preciso separar transporte de operação: o UDP não garante entrega, e o cliente
+DNS retransmite a consulta após um tempo limite (no E5, o resolvedor esperou o tempo esgotar no ns1 e tentou outro servidor),
+o que dá semântica de <b>ao menos uma vez</b> para a consulta — segura porque a leitura é idempotente. O NOTIFY também
+é retransmitido até ser confirmado. A transferência de zona entrega a versão inteira (ou as diferenças) de forma confiável
+pelo TCP e é idempotente: repetir a transferência da mesma versão não muda o estado da réplica.</p>
+
+<p class="q">Q5. Qual é o modelo de replicação?</p>
+<p><b>Primário-backup</b> por zona, com propagação assíncrona. N = 3 réplicas no laboratório (ns1, ns2, ns3); só o
+primário aceita escritas (E5: os secundários responderam REFUSED a atualizações). O primário confirma a escrita sem
+esperar as réplicas; cada secundário busca a versão nova quando recebe o NOTIFY ou quando o refresh vence. Medido no E3:
+0,341 s em média com NOTIFY e 16,211 s sem NOTIFY.</p>
+
+<p class="q">Q6. Qual modelo de consistência o sistema oferece?</p>
+<p><b>Consistência eventual</b> (Unidade 4). Demonstração (E4): depois de uma alteração, os três autoritativos
+responderam o valor novo em menos de 1 s, mas o resolvedor continuou devolvendo o valor antigo até o TTL do cache vencer —
+janelas de 7,9 s a 47,8 s, acompanhando o TTL restante; o nome criado depois de consultado continuou como inexistente por
+19,4 s (cache negativo). Há duas fontes de inconsistência: o atraso de replicação entre autoritativos (E3) e o cache do
+resolvedor (E4). Não há leitura das próprias escritas: quem publica no primário e lê pelo resolvedor pode ver o valor
+anterior. Durante uma partição a divergência entre réplicas dura até o expire (E6).</p>
+
+<p class="q">Q7. O sistema usa quórum?</p>
+<p>Não. Leitura em uma réplica (R = 1), escrita em um único nó, o primário (W = 1); N = 3. R + W = 2 ≤ N, portanto uma
+leitura pode não encontrar a escrita mais recente, coerente com a consistência eventual (Q6). Para leitura o sistema
+tolera f = N − 1 = 2 falhas; para escrita não tolera a falha do primário. No E5, com ns1 e ns2 parados, o ns3 continuou
+respondendo sozinho; com o ns1 parado nenhuma escrita foi possível. Como não há maioria a formar, não há como "perder o
+quórum": a disponibilidade de leitura acaba só quando nenhuma réplica tem a zona válida (expire, E6).</p>
+
+<p class="q">Q8. Existe líder, primário ou coordenador? Como é escolhido?</p>
+<p>Existe um <b>primário estático</b> por zona, definido no arquivo de configuração (<code>type primary</code> no ns1;
+<code>primaries { 172.30.0.11; }</code> nos secundários) e indicado no campo MNAME do SOA. Não há eleição. Nos algoritmos do
+valentão e do anel (Unidade 2), os processos detectam a falha do líder e elegem outro, o de maior identificador. No DNS, se o
+primário falha, nenhum secundário assume (E5); a troca é feita pelo administrador, alterando a configuração. O DNS evita a
+eleição porque escritas são raras e leituras não dependem do primário.</p>
+
+<p class="q">Q9. Como o sistema ordena eventos ou versões?</p>
+<p>Pelo <b>serial do SOA</b>, um número de 32 bits que identifica a versão da zona e é comparado segundo a RFC 1982.
+Funciona como um relógio lógico de Lamport (Unidade 1) com um único processo que gera eventos: o primário incrementa o
+serial a cada versão, e os secundários só aceitam versões com serial maior que o seu, o que impõe uma ordem total às
+versões e garante que uma réplica nunca volte no tempo. No E8, ao publicar um serial menor, os secundários mantiveram a
+versão que já tinham. Relógios vetoriais e multicast ordenado (Unidades 1 e 3) não são necessários porque só um processo
+escreve: não há eventos concorrentes a ordenar. Com dois primários editando a mesma zona, dois incrementos independentes
+poderiam gerar o mesmo serial para conteúdos diferentes, e o serial não detecta essa concorrência — seria preciso um
+relógio vetorial ou coordenação.</p>
+
+<p class="q">Q10. Qual modelo de falhas é assumido? Como as falhas são detectadas?</p>
+<p>O BIND assume falhas por parada e por omissão (Unidade 1): um servidor que não responde, ou uma mensagem perdida. A
+detecção é por <b>tempo esgotado</b>, sem heartbeat: o resolvedor espera a resposta e tenta outro servidor (E5: cerca de
+1,2 s com o ns1 parado); o secundário consulta o SOA do primário a cada refresh e, se não obtém resposta, tenta de novo a
+cada retry (E6). Se o primário fica inalcançável por mais que o expire, o secundário conclui que a cópia pode estar
+desatualizada e deixa de responder pela zona (E6: o ns3 isolado registrou <code>zone sd.lab/IN: expired</code> 300 s após o último refresh bem-sucedido e passou a responder SERVFAIL). Falha de um nó: leituras continuam nas outras réplicas;
+se for o primário, escritas param. Falha da maioria (dois de três): leituras ainda continuam no nó restante até o expire
+(E5). Falhas bizantinas (respostas forjadas) não são tratadas pelo DNS básico; o DNSSEC protege a integridade (S4).</p>
+
+<p class="q">Q11. Diante de uma partição, o sistema prioriza consistência ou disponibilidade?</p>
+<p>Depende do momento, e o experimento E6 mostra as duas fases. Com o ns3 isolado apenas da rede interna, até o
+expire o ns3 continuou respondendo com autoridade a versão antiga (serial 2026102635) enquanto o ns2 já respondia a
+nova (2026102636): disponibilidade com inconsistência — comportamento <b>AP</b> no teorema CAP (Unidade 1, Unidade 4).
+Quando o expire de 300 s venceu, o ns3 passou a responder SERVFAIL: para não servir um dado que pode estar muito
+desatualizado, abriu mão da disponibilidade daquela réplica. Portanto o DNS é AP com um limite de tempo para a
+desatualização, definido pelo expire. O lado do primário continuou disponível e consistente. Pela extensão PACELC
+(indicada no roteiro), sem partição o DNS escolhe latência em vez de consistência: as respostas saem de caches e
+réplicas sem coordenação, ao custo da janela de inconsistência medida no E4. Para comparação, a Unidade 4 classifica
+o etcd como CP (sem quórum, não aceita escrita).</p>
+
+<p class="q">Q12. Como um nó que volta recupera o estado?</p>
+<p>{{E7_Q12}}</p>
+
+<p class="q">Q13. Quais problemas clássicos aparecem e como são resolvidos ou evitados?</p>
+<ul>
+  <li><b>Eleição de líder:</b> evitada. O primário é fixo por configuração (Q8).</li>
+  <li><b>Exclusão mútua:</b> evitada. Só o primário escreve na zona; não há escritores concorrentes a coordenar. Com
+  atualização dinâmica (RFC 2136) o próprio primário serializa as atualizações.</li>
+  <li><b>Ordenação / multicast ordenado:</b> resolvida pelo serial do SOA, contador monotônico mantido por um único
+  processo (Q9, E8). A propagação não usa multicast: cada secundário pede a versão ao primário.</li>
+  <li><b>Consenso:</b> não há. As réplicas não votam: elas copiam o primário, e divergências temporárias são aceitas
+  (consistência eventual).</li>
+  <li><b>Estado global e recuperação:</b> a transferência de zona entrega uma cópia completa e consistente da versão
+  atual, como um snapshot (Q12).</li>
+  <li><b>Generais bizantinos:</b> não tratados por réplicas; o DNSSEC substitui a votação por assinaturas (S4).</li>
+</ul>
+
+<p class="q">Q14. Onde o sistema é usado, quais as limitações e que cuidados de segurança exige?</p>
+<p>Em toda a Internet (web, e-mail, CDNs que redirecionam o cliente para o servidor mais próximo — Unidade 2) e dentro de
+clusters como diretório de serviços (CoreDNS no Kubernetes, E9). Limitações: consistência apenas eventual, com janela de
+até um TTL (E4); escrita dependente de um único primário (E5); TTL baixo acelera mudanças, mas aumenta a carga ({{E9_CARGA}}).
+Segurança (Unidade 4): o DNS nasceu sem autenticação nem sigilo. Ameaças: envenenamento de cache, interceptação das
+consultas, sequestro de delegação e amplificação em ataques de negação de serviço. Defesas: DNSSEC (integridade e
+autenticidade), DoT e DoH (sigilo entre cliente e resolvedor), bloqueio e 2FA no registrador, limitação de taxa e
+resolvedores fechados. No laboratório, a transferência de zona foi limitada aos endereços internos dos secundários
+(<code>allow-transfer</code>) e os secundários recusaram atualizações (E5).</p>

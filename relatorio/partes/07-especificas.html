@@ -1,0 +1,71 @@
+<h1 class="nova">7. Questões específicas (S1 a S4)</h1>
+
+<p class="q">S1. Por que o DNS pode oferecer apenas consistência eventual? Quais mecanismos limitam a janela de inconsistência e como ajustá-los para um serviço que muda com frequência?</p>
+<p>Porque a grande maioria das operações é leitura e os dados mudam pouco: um endereço desatualizado por alguns segundos
+ou minutos raramente causa dano, e o ganho é enorme — leituras atendidas por qualquer réplica e por caches perto do
+cliente, sem coordenação. Exigir consistência forte obrigaria cada leitura a consultar o primário ou uma maioria, o que
+não escala para a Internet. Mecanismos que limitam a janela, com o que foi medido:</p>
+<ul>
+  <li><b>NOTIFY:</b> leva a mudança aos secundários em menos de 1 s (E3: 0,341 s em média).</li>
+  <li><b>Refresh e retry:</b> garantem a propagação mesmo sem NOTIFY ou se ele se perder, em até um refresh
+  (E3 sem NOTIFY: 16,2 s em média, máximo de 20,4 s com refresh de 30 s).</li>
+  <li><b>TTL:</b> limita por quanto tempo um resolvedor pode servir o valor antigo (E4: janela acompanhou o TTL restante,
+  até 47,8 s com TTL 60). O TTL negativo faz o mesmo para nomes inexistentes (E4: 19,4 s com 20 s).</li>
+  <li><b>Expire:</b> limita por quanto tempo uma réplica isolada serve dados possivelmente antigos (E6: o ns3 isolado parou de responder 300 s após o último refresh bem-sucedido).</li>
+</ul>
+<p>Para um serviço que muda com frequência: manter o NOTIFY ligado; usar TTL baixo nos registros que mudam (a Unidade 4
+cita 30 a 60 s para facilitar failover em nuvem), sabendo que isso aumenta a carga nos servidores e a latência média das
+consultas ({{E9_S1}}); reduzir o TTL com antecedência antes de uma troca planejada e voltar a aumentá-lo depois;
+manter refresh na ordem de minutos como proteção caso o NOTIFY se perca; e manter o expire longo (dias), para que uma
+falha do primário não derrube as leituras. O TTL é o parâmetro que mais pesa para o cliente, porque a janela que ele
+percebe é dominada pelo cache, e não pela replicação.</p>
+
+<p class="q">S2. Resolução iterativa x recursiva: onde fica o estado (cache) e qual o impacto na escalabilidade e na carga dos servidores raiz?</p>
+<p>Na <b>recursiva</b>, o cliente pergunta uma vez ao resolvedor, que faz todo o trabalho e guarda o resultado em cache;
+o estado fica no resolvedor e é compartilhado por todos os seus clientes. Na <b>iterativa</b>, quem pergunta recebe
+referências (NS) e segue de servidor em servidor; os servidores da hierarquia não guardam estado da consulta, e o
+cache, se houver, fica com quem iterou (Unidade 4). Na prática combinam-se as duas: o cliente faz consultas
+recursivas ao resolvedor, e o resolvedor faz consultas iterativas à raiz, ao TLD e ao autoritativo. Impacto: como o
+resolvedor guarda também as delegações (os NS dos TLDs), a raiz só é consultada quando essas delegações expiram, e não
+a cada nome; um único resolvedor absorve as perguntas repetidas de muitos clientes. No laboratório, a segunda consulta
+do E2 não chegou a nenhum autoritativo, e no E9 {{E9_S2}}. A recursiva simplifica o cliente e permite cache compartilhado;
+a iterativa distribui a carga entre os servidores da hierarquia, que não precisam manter estado.</p>
+
+<p class="q">S3. O primário é um ponto único de falha? Para leitura, para escrita, ou ambos? Como as operações reais mitigam isso?</p>
+<p>Só para <b>escrita</b>. No E5, com o ns1 parado, nenhuma versão nova pôde ser publicada e os secundários recusaram
+atualizações; as leituras continuaram nos secundários e pelo resolvedor, até com dois servidores parados. Para leitura, o
+primário só se torna indispensável depois do expire: sem contato com ele por 300 s, os secundários param de responder
+(no E6, o ns3 isolado passou a SERVFAIL ao fim do expire). Mitigações usadas na prática: <b>primário oculto</b> — o primário não aparece nos registros NS e não atende
+clientes, só alimenta os secundários; fica protegido de ataques de negação de serviço e pode ficar fora do ar por algum
+tempo sem afetar as leituras; <b>anycast</b> — o mesmo endereço é anunciado a partir de vários locais e a rede entrega a
+consulta à instância mais próxima (a Unidade 4 cita 13 identidades de servidores raiz com centenas de instâncias via
+anycast); <b>múltiplos provedores</b> — secundários em provedores e redes diferentes, para que a falha de um provedor não
+torne o domínio irresolúvel; e expire longo, que dá tempo para recuperar o primário.</p>
+
+<p class="q">S4. Como o DNSSEC garante integridade sem exigir confiança no servidor que responde? Relação com quóruns bizantinos.</p>
+<p>O DNSSEC assina os dados da zona com a chave privada do dono da zona (registros RRSIG) e publica a chave pública
+(DNSKEY); a chave de cada zona é referenciada pela zona pai (registro DS), formando uma cadeia de confiança a partir da
+raiz (Unidade 4; RFC 4033). O resolvedor valida a assinatura com a cadeia de chaves: não importa qual servidor
+entregou a resposta — primário, secundário, um cache ou um intermediário —, porque nenhum deles consegue produzir uma
+assinatura válida sem a chave privada. A confiança passa do servidor para a chave. Na Unidade 4, quóruns bizantinos
+(Malkhi e Reiter) mostram que réplicas que podem mentir exigem mais réplicas: n ≥ 4f + 1 para dados sem assinatura
+(quórum de mascaramento, o cliente precisa de uma maioria de respostas iguais) e n ≥ 3f + 1 para dados autoautenticados
+(quórum de disseminação). Com dados assinados, o cliente detecta sozinho uma resposta adulterada e não precisa de votação
+entre réplicas; um servidor mentiroso ainda pode omitir a resposta ou reenviar uma versão antiga ainda válida, o que se
+limita pelo prazo de validade das assinaturas. O DNSSEC dá autenticidade e integridade, não sigilo; DoT e DoH dão sigilo
+apenas no trecho entre cliente e resolvedor.</p>
+
+<h1>8. Quadro-síntese</h1>
+<table>
+  <tr><th style="width:32%">Aspecto</th><th>Resposta da equipe (com referência à evidência)</th></tr>
+  <tr><td>Estilo arquitetural e papéis</td><td>Cliente-servidor (requisição-resposta) com espaço de nomes hierárquico. Papéis: primário, secundários, resolvedor recursivo com cache, cliente (E1, E2; Figura 1).</td></tr>
+  <tr><td>Como o dado ou serviço é localizado</td><td>Resolução hierárquica (raiz → TLD → autoritativo), com cache no resolvedor (E2).</td></tr>
+  <tr><td>Modelo de replicação (N réplicas; quem aceita escritas)</td><td>Primário-backup assíncrono, N = 3; só o primário aceita escritas; secundários puxam a zona por NOTIFY ou refresh (E3: 0,34 s com NOTIFY, 16,2 s sem).</td></tr>
+  <tr><td>Modelo de consistência observado</td><td>Eventual: autoritativos convergem em menos de 1 s, resolvedor serve o valor antigo até o TTL vencer (E4: janela até 47,8 s com TTL 60; cache negativo 19,4 s).</td></tr>
+  <tr><td>Quórum (N, R, W ou maioria) e falhas toleradas</td><td>Sem quórum: N = 3, R = 1, W = 1 (sempre o primário). Leitura tolera 2 falhas; escrita não tolera a falha do primário (E5).</td></tr>
+  <tr><td>Líder ou coordenador e forma de escolha</td><td>Primário estático, definido na configuração; sem eleição (E5, E8).</td></tr>
+  <tr><td>Mecanismo de ordenação ou versionamento</td><td>Serial do SOA, monotônico, comparado pela RFC 1982; secundários ignoram serial menor (E8).</td></tr>
+  <tr><td>Comportamento sob partição (C ou A)</td><td>Até o expire, A: o nó isolado responde a versão antiga com autoridade. Depois do expire, deixa de responder (SERVFAIL). O lado do primário segue disponível e consistente (E6).</td></tr>
+  <tr><td>Mecanismo de recuperação</td><td>{{E7_QUADRO}}</td></tr>
+  <tr><td>Problemas clássicos presentes e como são tratados</td><td>Eleição e exclusão mútua evitadas (primário único); ordenação pelo serial; sem consenso; integridade contra respostas falsas pelo DNSSEC (Q13, S4).</td></tr>
+</table>

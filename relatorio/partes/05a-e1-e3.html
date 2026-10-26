@@ -1,0 +1,98 @@
+<h1 class="nova">5. Experimentos</h1>
+<p>Para cada experimento a previsão foi gravada no repositório antes da execução. Os tempos foram medidos dentro do
+contêiner <code>cliente</code> com <code>date +%s.%N</code>; o instante de referência de uma alteração é o
+<code>rndc reload</code> executado no ns1. Como todos os contêineres usam o relógio da mesma máquina virtual, os
+instantes são comparáveis entre si. Desvio padrão: amostral (n − 1).</p>
+
+<h2>5.1. E1 — Subida e topologia</h2>
+<p><b>Objetivo.</b> Mostrar o cluster no ar, com pelo menos três servidores autoritativos, e identificar o papel de cada nó.</p>
+<p><b>Previsão.</b> Os cinco contêineres sobem; os secundários, sem cópia da zona, recebem do primário uma transferência
+completa (AXFR) pela rede interna; os três autoritativos respondem o mesmo serial com <code>aa</code>.</p>
+<p><b>Procedimento.</b> <code>scripts/e1.sh</code>: <code>docker compose up -d</code>, estado dos contêineres, logs de
+transferência, SOA nos três autoritativos e <code>rndc zonestatus</code>.</p>
+<pre>$ docker compose logs ns2 | grep -i transfer        (21/10/2026, trecho)
+22:34:55.411 client 172.30.0.11#39939: received notify for zone 'sd.lab'
+22:34:55.412 zone sd.lab/IN: Transfer started.
+22:34:55.414 transfer of 'sd.lab/IN' from 172.30.0.11#53: Transfer completed:
+             1 messages, 9 records, 224 bytes, 0.002 secs (serial 2026101401)
+$ for s in 11 12 13; do docker exec cliente dig @172.31.0.$s sd.lab SOA +short; done
+ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20
+ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20
+ns1.sd.lab. admin.sd.lab. 2026101401 30 10 300 20</pre>
+<p><b>Resultado.</b> Previsão confirmada. Os cinco contêineres ficaram em execução com os endereços da Figura 2. O ns1 registrou
+<code>AXFR started/ended</code> para 172.30.0.12 e 172.30.0.13 (endereços internos). <code>rndc zonestatus</code>
+mostrou <code>type: primary</code> no ns1 e <code>type: secondary</code> no ns2 e no ns3, com <code>expires</code> igual
+ao instante da transferência mais 300 s. O ns2 transferiu ao receber o NOTIFY; o ns3 transferiu cerca de 0,5 s depois
+pela verificação inicial que o secundário faz ao carregar, e o NOTIFY chegou a ele quando a zona já estava atualizada.</p>
+<p><b>Análise.</b> O cluster tem um coordenador definido por configuração (ns1) e duas réplicas. A primeira
+sincronização é sempre completa, porque o secundário não tem uma versão anterior a partir da qual pedir diferenças.
+O mesmo serial nos três servidores indica que todos têm a mesma versão da zona.</p>
+
+<h2>5.2. E2 — Caminho de uma operação</h2>
+<p><b>Objetivo.</b> Mostrar o percurso de uma leitura e de uma escrita: quem recebe, quem decide, quem replica e quem responde.</p>
+<p><b>Previsão.</b> Ver <code>evidencias/e2/PREVISAO.md</code>: pelo resolvedor, resposta com <code>ra</code> e sem
+<code>aa</code>, com a primeira consulta chegando a um autoritativo e a segunda saindo do cache; a escrita só no
+primário, seguida de NOTIFY e transferência completa.</p>
+<p><b>Procedimento.</b> <code>scripts/e2.sh</code>: ativa o log de consultas (<code>rndc querylog on</code>) no
+resolvedor e nos autoritativos, esvazia o cache do resolvedor, faz duas leituras pelo resolvedor e uma direta no ns1
+com <code>+norecurse</code>; depois publica uma versão nova da zona (<code>app</code> de 10.0.0.2 para 10.0.0.3,
+serial 2026102603) e coleta os logs.</p>
+<pre>Leitura 1 (cache vazio): flags qr rd ra   app.sd.lab. 60 IN A 10.0.0.2   (172.31.0.53)
+Leitura 2 (2 s depois):   flags qr rd ra   app.sd.lab. 58 IN A 10.0.0.2   (172.31.0.53)
+Direta no ns1:            flags qr aa      app.sd.lab. 60 IN A 10.0.0.2   (172.31.0.11)
+ns3 17:59:08.144  client 172.31.0.53: query: app.sd.lab IN A
+ns1 17:59:11.959  zone sd.lab/IN: loaded serial 2026102603
+ns1 17:59:11.959  zone sd.lab/IN: sending notifies (serial 2026102603)
+ns2 17:59:11.962  notify from 172.30.0.11: serial 2026102603
+ns1 17:59:11.967  172.30.0.12: query: sd.lab IN IXFR
+ns1 17:59:11.967  IXFR version not in journal, falling back to AXFR
+ns3 17:59:12.466  notify from 172.30.0.11: serial 2026102603
+ns1 17:59:12.471  172.30.0.13: AXFR-style IXFR ended: 9 records, 224 bytes
+Depois: ns1, ns2 e ns3 -> 10.0.0.3   resolvedor -> app.sd.lab. 52 IN A 10.0.0.2</pre>
+<div class="fig">
+  <p class="legenda">Figura 3 — Diagrama de sequência do E2</p>
+  <img src="../diagramas/sequencia-e2.png" alt="Sequência do E2">
+  <p class="fonte">Fonte: elaborado pelos autores (2026), a partir dos logs do experimento.</p>
+</div>
+<p><b>Resultado.</b> Previsão confirmada. A primeira leitura foi repassada pelo resolvedor a um dos encaminhadores (nesta
+execução, o ns3, que registrou a consulta vinda de 172.31.0.53); a segunda saiu do cache (TTL 58, nenhum autoritativo
+registrou consulta). Na escrita, cada secundário pediu IXFR e recebeu a zona inteira, porque o primário carrega a zona de
+um arquivo e não guarda o histórico de diferenças entre versões. Ao final, os três autoritativos respondiam 10.0.0.3,
+e o resolvedor ainda devolvia 10.0.0.2 do cache.</p>
+<p><b>Análise.</b> A leitura é uma cadeia cliente-servidor (cliente → resolvedor → autoritativo), e o estado fica em
+dois lugares: a zona nos autoritativos e o cache no resolvedor. Quem decide uma escrita é só o primário; a replicação é
+iniciada pelo secundário (ele pede a transferência), e o NOTIFY só antecipa esse pedido. O valor antigo no resolvedor,
+depois de os autoritativos já terem convergido, é a janela de inconsistência medida no E4.</p>
+
+<h2>5.3. E3 — Replicação</h2>
+<p><b>Objetivo.</b> Medir o tempo de propagação de uma alteração do primário para os secundários, com e sem NOTIFY.</p>
+<p><b>Previsão.</b> Com NOTIFY, menos de 1 s, com o ns3 mais lento que o ns2 (como no E2). Sem NOTIFY, entre 0 e 30 s
+(refresh), com grande variação.</p>
+<p><b>Procedimento.</b> <code>scripts/e3.sh</code>. Em cada repetição: nova versão da zona com serial incrementado e
+valor novo em <code>app</code>; uma sonda no cliente consulta ns2 e ns3 a cada 100 ms (sem recursão) e registra o
+instante em que cada um responde o valor novo; o atraso é medido a partir do <code>rndc reload</code>. Cinco repetições
+por cenário, com 8 s entre elas. Para o cenário sem NOTIFY, o ns1 é recriado com <code>notify no</code>
+(<code>docker-compose.semnotify.yml</code>).</p>
+<table>
+  <tr><th>Repetição</th><th>Com NOTIFY: ns2 (s)</th><th>Com NOTIFY: ns3 (s)</th><th>Sem NOTIFY: ns2 (s)</th><th>Sem NOTIFY: ns3 (s)</th></tr>
+  <tr><td>1</td><td class="n">0,160</td><td class="n">0,554</td><td class="n">10,307</td><td class="n">15,864</td></tr>
+  <tr><td>2</td><td class="n">0,063</td><td class="n">0,651</td><td class="n">15,377</td><td class="n">15,933</td></tr>
+  <tr><td>3</td><td class="n">0,123</td><td class="n">0,565</td><td class="n">20,393</td><td class="n">15,898</td></tr>
+  <tr><td>4</td><td class="n">0,072</td><td class="n">0,597</td><td class="n">18,744</td><td class="n">16,324</td></tr>
+  <tr><td>5</td><td class="n">0,040</td><td class="n">0,590</td><td class="n">16,904</td><td class="n">16,368</td></tr>
+  <tr><th>Média</th><th class="n">0,092</th><th class="n">0,591</th><th class="n">16,345</th><th class="n">16,077</th></tr>
+  <tr><th>Desvio padrão</th><th class="n">0,049</th><th class="n">0,038</th><th class="n">3,868</th><th class="n">0,247</th></tr>
+</table>
+<p>Considerando os dois secundários juntos (n = 10): com NOTIFY, média de 0,341 s (desvio 0,267 s); sem NOTIFY,
+média de 16,211 s (desvio 2,588 s). A resolução da sonda é de cerca de 0,1 s.</p>
+<p><b>Resultado.</b> Previsão confirmada: o NOTIFY reduziu a propagação de cerca de 16 s para menos de 1 s. O ns3
+recebeu o NOTIFY sempre cerca de 0,5 s depois do ns2. Sem NOTIFY todos os atrasos ficaram dentro do refresh de 30 s.</p>
+<p><b>Observação durante a execução.</b> Uma primeira série com 2 s entre repetições deu atrasos de até 1,9 s com NOTIFY.
+Os logs do ns2 mostraram NOTIFY chegando em intervalos de exatamente 5 s (18:00:26,745; 31,751; 36,750; 41,755;
+46,758): o primário não envia NOTIFY da mesma zona mais de uma vez a cada 5 s (opção <code>notify-delay</code>
+do BIND). A série foi refeita com 8 s entre repetições; a primeira está guardada em
+<code>evidencias/e3/e3-20261026-150025-intervalo-curto.txt</code> e <code>resultados/e3-intervalo-curto.csv</code>.</p>
+<p><b>Análise.</b> A replicação é primário-backup assíncrona e iniciada pelo secundário: o primário confirma a escrita
+(carrega a zona) sem esperar nenhuma réplica, e cada réplica atualiza quando descobre a nova versão, seja pelo NOTIFY,
+seja pela consulta periódica ao SOA (refresh). Sem NOTIFY o atraso depende de em que ponto do ciclo de refresh a
+alteração caiu, o que explica a variação maior.</p>

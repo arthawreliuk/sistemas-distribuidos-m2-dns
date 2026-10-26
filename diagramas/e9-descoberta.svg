@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" font-family="Arial, Helvetica, sans-serif" font-size="13">
+  <title>Montagem do E9</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#000"/></marker>
+  </defs>
+  <rect width="900" height="360" fill="#fff"/>
+  <g text-anchor="middle">
+    <rect x="30" y="140" width="150" height="70" fill="#fff" stroke="#000" stroke-width="2"/>
+    <text x="105" y="165" font-weight="bold">cliente</text><text x="105" y="183" font-size="11">1. descobre api.servicos.lab</text><text x="105" y="199" font-size="11">2. chama uma instância</text>
+    <rect x="290" y="140" width="160" height="70" fill="#fff" stroke="#000"/>
+    <text x="370" y="165" font-weight="bold">resolvedor (BIND)</text><text x="370" y="183" font-size="11">cache pelo TTL</text><text x="370" y="199" font-size="11">172.31.0.53</text>
+    <rect x="560" y="140" width="160" height="70" fill="#fff" stroke="#000"/>
+    <text x="640" y="165" font-weight="bold">CoreDNS</text><text x="640" y="183" font-size="11">autoritativo servicos.lab</text><text x="640" y="199" font-size="11">172.31.0.60 (métricas :9153)</text>
+    <rect x="520" y="20" width="240" height="60" fill="#eee" stroke="#000"/>
+    <text x="640" y="44" font-weight="bold">registro (zona)</text><text x="640" y="62" font-size="11">db.servicos.lab, recarregado a cada 1 s</text>
+    <rect x="30" y="270" width="110" height="44" fill="#fff" stroke="#000"/><text x="85" y="297">api1 .21</text>
+    <rect x="160" y="270" width="110" height="44" fill="#fff" stroke="#000"/><text x="215" y="297">api2 .22</text>
+    <rect x="290" y="270" width="110" height="44" fill="#fff" stroke="#000" stroke-dasharray="5 3"/><text x="345" y="290">api3 .23</text><text x="345" y="306" font-size="11">morre e é removida</text>
+  </g>
+  <line x1="180" y1="168" x2="288" y2="168" stroke="#000" marker-end="url(#a)"/>
+  <text x="234" y="160" text-anchor="middle" font-size="11">A? (a cada 0,2 s)</text>
+  <line x1="450" y1="168" x2="558" y2="168" stroke="#000" marker-end="url(#a)"/>
+  <text x="504" y="160" text-anchor="middle" font-size="11">só quando o</text>
+  <text x="504" y="190" text-anchor="middle" font-size="11">cache vence</text>
+  <line x1="640" y1="80" x2="640" y2="138" stroke="#000" marker-end="url(#a)"/>
+  <text x="660" y="104" font-size="11">remoção de api3 =</text>
+  <text x="660" y="118" font-size="11">nova versão da zona</text>
+  <line x1="105" y1="210" x2="85" y2="268" stroke="#000" marker-end="url(#a)"/>
+  <line x1="105" y1="210" x2="215" y2="268" stroke="#000" marker-end="url(#a)"/>
+  <line x1="105" y1="210" x2="340" y2="268" stroke="#000" stroke-dasharray="5 3" marker-end="url(#a)"/>
+  <text x="250" y="240" font-size="11">HTTP (rodízio entre os IPs anunciados)</text>
+  <text x="450" y="300" font-size="12">Paralelo com o Kubernetes: Service = nome estável;</text>
+  <text x="450" y="318" font-size="12">EndpointSlices = registro; CoreDNS = servidor de nomes;</text>
+  <text x="450" y="336" font-size="12">cache do resolvedor = cache 30 do Corefile padrão.</text>
+</svg>

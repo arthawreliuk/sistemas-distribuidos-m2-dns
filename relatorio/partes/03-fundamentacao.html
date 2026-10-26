@@ -1,0 +1,51 @@
+<h1>3. Fundamentação</h1>
+<h2>3.1. O DNS e o artigo seminal</h2>
+<p>O DNS traduz nomes legíveis (como <code>www.univali.br</code>) em registros, principalmente endereços IP. Antes dele, a
+tradução era feita por um único arquivo de hosts mantido de forma central e copiado para todas as máquinas, o que não
+acompanhava o crescimento da rede. Mockapetris e Dunlap (1988) descrevem o projeto do DNS como um banco de dados
+hierárquico, distribuído e replicado: o espaço de nomes é uma árvore, cada parte da árvore (zona) é administrada de
+forma independente, e a autoridade sobre cada zona é delegada por registros NS. A especificação está nas RFC 1034 e
+1035 (MOCKAPETRIS, 1987a; 1987b).</p>
+<p>Em termos da disciplina, o DNS é o exemplo clássico de servidor de nomes: o cliente consulta um serviço de nomes
+(lookup) que devolve o endereço atual do servidor e só então faz a requisição direta (Unidade 2). A localização do dado
+não é calculada (como em uma DHT), nem consultada em um diretório central: é feita percorrendo a hierarquia de zonas
+(Unidade 4).</p>
+
+<h2>3.2. Arquitetura</h2>
+<div class="fig">
+  <p class="legenda">Figura 1 — Arquitetura do DNS: hierarquia de zonas e organização interna de uma zona</p>
+  <img src="../diagramas/arquitetura-dns.png" alt="Arquitetura do DNS">
+  <p class="fonte">Fonte: elaborado pelos autores (2026), com base em Mockapetris e Dunlap (1988) e na Unidade 4.</p>
+</div>
+<p>Há dois papéis de servidor. O <b>servidor autoritativo</b> guarda os dados de uma zona e responde sobre ela com a
+flag <code>aa</code> (resposta autoritativa). O <b>resolvedor recursivo</b> recebe a pergunta do cliente, percorre a
+hierarquia (raiz, TLD, autoritativo) e guarda as respostas em cache pelo tempo indicado no TTL; ele responde com a flag
+<code>ra</code> (recursão disponível). Na resolução recursiva o cliente pergunta uma vez e o resolvedor faz o trabalho;
+na iterativa quem pergunta segue as referências (NS) de servidor em servidor (Unidade 4).</p>
+<p>Dentro de uma zona, um servidor é o <b>primário</b>: é o único onde a zona é editada. Os <b>secundários</b> mantêm
+cópias somente leitura e respondem com a mesma autoridade. É a replicação primário-backup aplicada a cada zona.</p>
+
+<h2>3.3. Conceitos usados nos experimentos</h2>
+<ul>
+  <li><b>Registro SOA</b> (RFC 1035): abre cada zona e carrega o <b>serial</b> (número da versão da zona), o
+  <b>refresh</b> (intervalo em que o secundário consulta o SOA do primário), o <b>retry</b> (novo intervalo após uma
+  falha nessa consulta), o <b>expire</b> (tempo sem contato com o primário após o qual o secundário deixa de responder
+  pela zona) e o <b>TTL negativo</b> (por quanto tempo a inexistência de um nome pode ficar em cache, RFC 2308).</li>
+  <li><b>Transferência de zona</b>: completa (AXFR, RFC 1035) ou incremental, só com as diferenças entre versões
+  (IXFR, RFC 1995). Quem pede é o secundário.</li>
+  <li><b>NOTIFY</b> (RFC 1996): aviso do primário aos secundários de que a zona mudou. Não carrega os dados; apenas
+  antecipa a consulta ao SOA que, sem ele, só aconteceria no próximo refresh.</li>
+  <li><b>Cache e TTL</b>: cada resposta pode ser reutilizada pelo resolvedor enquanto o TTL não vencer. Após uma mudança,
+  resolvedores diferentes convergem em tempos diferentes, até o TTL: é a consistência eventual do DNS (Unidade 4).</li>
+  <li><b>Aritmética de números seriais</b> (RFC 1982): o serial é comparado de forma circular em 32 bits; uma versão só
+  é considerada mais nova se o serial for maior segundo essa aritmética. Funciona como um contador lógico de versões
+  da zona, comparável ao relógio lógico de Lamport (Unidade 1).</li>
+</ul>
+
+<h2>3.4. Descoberta de serviços (ênfase D)</h2>
+<p>Em ambientes de contêineres as instâncias de um serviço nascem e morrem com frequência e mudam de endereço. No
+Kubernetes, o Service dá um nome estável a um conjunto de pods, e o CoreDNS traduz esse nome; o CoreDNS é configurado
+por uma cadeia de plugins (Corefile), e a configuração padrão do cluster guarda respostas em cache por 30 s
+(Unidade 4; COREDNS, 2024; KUBERNETES, 2024). O DNS passa a ser usado como diretório de serviços: os registros mudam
+sempre que uma instância entra ou sai, e o TTL decide por quanto tempo um cliente pode continuar usando um endereço que
+já não existe. O experimento E9 reproduz essa situação com CoreDNS servindo a zona <code>servicos.lab</code>.</p>

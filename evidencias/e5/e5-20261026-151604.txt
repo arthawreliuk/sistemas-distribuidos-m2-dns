@@ -1,0 +1,49 @@
+
+===== Estado 1: três autoritativos ativos =====
+    ns1 Up 16 seconds
+    ns2 Up 15 seconds
+    ns3 Up 18 minutes
+    leitura direta 172.31.0.11: NOERROR valor 10.0.5.34
+    leitura direta 172.31.0.12: NOERROR valor 10.0.5.34
+    leitura direta 172.31.0.13: NOERROR valor 10.0.5.34
+    leitura pelo resolvedor (cache vazio): NOERROR, valor 10.0.5.34 tempo 10 ms 
+    escrita no primário (serial 2026102635, app 10.0.5.35): publicada
+      172.31.0.12 serve serial 2026102635
+      172.31.0.13 serve serial 2026102635
+    escrita (atualização dinâmica) no secundário 172.31.0.12: update failed: REFUSED
+    escrita (atualização dinâmica) no secundário 172.31.0.13: update failed: REFUSED
+
+>>> docker stop ns1 em 1793038568.754902797
+
+===== Estado 2: ns1 (primário) parado — ns2 e ns3 ativos =====
+    ns2 Up 22 seconds
+    ns3 Up 18 minutes
+    leitura direta 172.31.0.11: sem resposta (tempo esgotado)
+    leitura direta 172.31.0.12: NOERROR valor 10.0.5.35
+    leitura direta 172.31.0.13: NOERROR valor 10.0.5.35
+    leitura pelo resolvedor (cache vazio): NOERROR, valor 10.0.5.35 tempo 1202 ms 
+    escrita no primário: IMPOSSÍVEL (Error response from daemon: container 855d5691a2ac17553d1ef886b48e48dfc4eb722ca6930aed16637f4044696a7a is not running)
+    escrita (atualização dinâmica) no secundário 172.31.0.12: update failed: REFUSED
+    escrita (atualização dinâmica) no secundário 172.31.0.13: update failed: REFUSED
+    ns2: expires: Mon, 26 Oct 2026 18:21:05 GMT
+
+>>> docker stop ns2 em 1793038575.848428425
+
+===== Estado 3: ns1 e ns2 parados — só ns3 ativo =====
+    ns3 Up 19 minutes
+    leitura direta 172.31.0.11: sem resposta (tempo esgotado)
+    leitura direta 172.31.0.12: sem resposta (tempo esgotado)
+    leitura direta 172.31.0.13: NOERROR valor 10.0.5.35
+    leitura pelo resolvedor (cache vazio): NOERROR, valor 10.0.5.35 tempo 1205 ms 
+    escrita no primário: IMPOSSÍVEL (Error response from daemon: container 855d5691a2ac17553d1ef886b48e48dfc4eb722ca6930aed16637f4044696a7a is not running)
+    escrita (atualização dinâmica) no secundário 172.31.0.12: ; Communication with 172.31.0.12#53 failed: timed out
+    escrita (atualização dinâmica) no secundário 172.31.0.13: update failed: REFUSED
+    ns3: expires: Mon, 26 Oct 2026 18:21:05 GMT
+
+===== Restauração =====
+>>> docker start ns1 ns2 em 1793038597.102401962
+    172.31.0.11 serial 2026102635
+    172.31.0.12 serial 2026102635
+    172.31.0.13 serial 2026102635
+
+Evidências gravadas em evidencias/e5/e5-20261026-151604.txt

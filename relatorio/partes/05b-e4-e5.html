@@ -1,0 +1,69 @@
+<h2>5.4. E4 — Consistência: cache, TTL e janela de inconsistência</h2>
+<p><b>Objetivo.</b> Evidenciar o modelo de consistência: medir por quanto tempo um cliente que usa o resolvedor lê um
+valor desatualizado depois de uma alteração.</p>
+<p><b>Previsão.</b> Os autoritativos convergem em menos de 1 s (E3), mas o resolvedor devolve o valor antigo até o
+TTL em cache vencer: a janela deve ser próxima do TTL restante no momento da alteração. Janela máxima teórica: TTL
+(60 s) + atraso de replicação (0,6 s). Para um nome inexistente, o NXDOMAIN fica em cache pelo TTL negativo (20 s).</p>
+<p><b>Procedimento.</b> <code>scripts/e4.sh</code>. (A) quatro consultas ao resolvedor com 5 s de intervalo.
+(B) cinco repetições: esvazia o cache, consulta <code>app</code> pelo resolvedor, espera 10, 20, 30, 40 ou 50 s, lê o
+TTL restante, publica um valor novo e consulta o resolvedor a cada 0,5 s até ele devolver o valor novo.
+(C) cinco repetições: consulta um nome inexistente (NXDOMAIN em cache), cria o nome no primário e consulta o
+resolvedor a cada 0,5 s até ele responder o endereço.</p>
+<pre>(A)  instante        resposta do resolvedor
+     ...077,29  app.sd.lab. 60 IN A 10.0.3.23
+     ...082,61  app.sd.lab. 55 IN A 10.0.3.23
+     ...087,92  app.sd.lab. 49 IN A 10.0.3.23
+     ...093,20  app.sd.lab. 44 IN A 10.0.3.23
+(B)  rep 4: novo valor 10.0.4.27 publicado; autoritativos ns1, ns2, ns3 já respondem 10.0.4.27
+     resolvedor: TTL 3 -> 10.0.4.26 | TTL 3 -> 10.0.4.26 | TTL 2 -> 10.0.4.26 | TTL 59 -> 10.0.4.27</pre>
+<table>
+  <tr><th>Repetição (B)</th><th>Cache preenchido há</th><th>TTL restante na alteração</th><th>Janela medida</th><th>Diferença</th></tr>
+  <tr><td>1</td><td class="n">10 s</td><td class="n">50 s</td><td class="n">47,773 s</td><td class="n">−2,23 s</td></tr>
+  <tr><td>2</td><td class="n">20 s</td><td class="n">40 s</td><td class="n">38,224 s</td><td class="n">−1,78 s</td></tr>
+  <tr><td>3</td><td class="n">30 s</td><td class="n">30 s</td><td class="n">27,720 s</td><td class="n">−2,28 s</td></tr>
+  <tr><td>4</td><td class="n">40 s</td><td class="n">20 s</td><td class="n">17,948 s</td><td class="n">−2,05 s</td></tr>
+  <tr><td>5</td><td class="n">50 s</td><td class="n">10 s</td><td class="n">7,897 s</td><td class="n">−2,10 s</td></tr>
+</table>
+<table>
+  <tr><th>Repetição (C)</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>Média</th><th>Desvio padrão</th></tr>
+  <tr><td>NXDOMAIN em cache após criar o nome</td><td class="n">19,187 s</td><td class="n">19,363 s</td><td class="n">19,870 s</td><td class="n">19,079 s</td><td class="n">19,622 s</td><td class="n">19,424 s</td><td class="n">0,323 s</td></tr>
+</table>
+<p><b>Resultado.</b> Previsão confirmada. O TTL diminuiu a cada consulta (respostas do cache). Em todas as repetições
+os autoritativos já respondiam o valor novo enquanto o resolvedor devolvia o antigo. A janela medida acompanhou o TTL
+restante, ficando em média 2,09 s abaixo dele (desvio 0,20 s). Parte da diferença vem do tempo entre ler o TTL e
+publicar a alteração (cerca de 1 s no script); o restante não foi investigado. Nenhuma janela passou do máximo teórico
+(60,6 s). O cache negativo manteve o NXDOMAIN por 19,4 s, próximo dos 20 s do SOA.</p>
+<p><b>Análise.</b> O DNS oferece consistência eventual: depois de uma escrita, leituras podem devolver o valor antigo
+por um tempo limitado, e todos acabam vendo o valor novo. Há duas janelas distintas. A da replicação, entre
+autoritativos, é de menos de 1 s com NOTIFY (E3). A do cache, no resolvedor, é de até um TTL e é a que o cliente percebe.
+Não há garantia de ler a própria escrita: quem publica no primário e consulta pelo resolvedor pode continuar vendo o
+valor anterior.</p>
+
+<h2>5.5. E5 — Falha e quórum</h2>
+<p><b>Objetivo.</b> Derrubar um nó e depois dois, e observar o que continua funcionando para leitura e para escrita.</p>
+<p><b>Previsão.</b> Leituras continuam enquanto houver um autoritativo com a zona válida; escritas param quando o primário
+cai, porque só ele publica versões. Não há quórum.</p>
+<p><b>Procedimento.</b> <code>scripts/e5.sh</code>. Em cada estado: leitura direta em cada autoritativo, leitura pelo
+resolvedor com cache vazio, tentativa de publicar uma versão no primário e tentativa de atualização dinâmica
+(<code>nsupdate</code>) nos secundários. Estados: três ativos; <code>docker stop ns1</code>; <code>docker stop ns2</code>.</p>
+<pre>Estado 1 (ns1, ns2, ns3): leituras NOERROR nos três; resolvedor 10 ms
+  escrita no primário: publicada (serial 2026102635); ns2 e ns3 passam a servir 2026102635
+  nsupdate em 172.31.0.12 e 172.31.0.13: update failed: REFUSED
+Estado 2 (ns1 parado): 172.31.0.11 sem resposta; ns2 e ns3 NOERROR; resolvedor NOERROR em 1202 ms
+  escrita no primário: impossível (container is not running); nsupdate nos secundários: REFUSED
+  ns2: expires: Mon, 26 Oct 2026 18:21:05 GMT
+Estado 3 (só ns3): ns1 e ns2 sem resposta; ns3 NOERROR; resolvedor NOERROR em 1205 ms
+  escrita: impossível</pre>
+<table>
+  <tr><th>Nós ativos</th><th>Leitura</th><th>Escrita</th><th>Observado</th></tr>
+  <tr><td>3 (ns1, ns2, ns3)</td><td>sim</td><td>sim (no ns1)</td><td>Leitura em qualquer autoritativo; escrita só pelo primário, propagada aos dois secundários.</td></tr>
+  <tr><td>2 (ns2, ns3)</td><td>sim</td><td>não</td><td>Secundários respondem sozinhos; recusam atualização (REFUSED). Resolvedor responde, mas leva cerca de 1,2 s porque espera o tempo esgotar no ns1 antes de tentar outro.</td></tr>
+  <tr><td>1 (ns3)</td><td>sim</td><td>não</td><td>Um único nó responde pela zona. A leitura continua até o expire (300 s sem contato com o primário).</td></tr>
+</table>
+<p><b>Resultado.</b> Previsão confirmada.</p>
+<p><b>Análise.</b> O DNS não usa quórum. Cada leitura é atendida por uma única réplica (R = 1) sem consultar as outras;
+cada escrita é aplicada em um único nó, sempre o primário (W = 1). Com N = 3, R + W = 2 não é maior que N, então
+não há garantia de que uma leitura veja a escrita mais recente — coerente com a consistência eventual do E4. Em troca,
+a leitura tolera a perda de N − 1 servidores (2 de 3, demonstrado), e a escrita não tolera a perda do primário, que é o
+único ponto de falha para escrita. Não existe "perder o quórum": não há maioria a formar, nem eleição de um novo
+primário.</p>

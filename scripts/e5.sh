@@ -6,9 +6,13 @@ saida="evidencias/e5/e5-$(date +%Y%m%d-%H%M%S).txt"
 exec > >(tee "$saida") 2>&1
 
 leituras() {
+  local s r st val
   for s in 11 12 13; do
-    r=$(docker exec cliente dig @172.31.0.$s app.sd.lab +norecurse +time=2 +tries=1 | grep -E "status:|^app\.sd\.lab|timed out|no servers")
-    echo "    leitura direta 172.31.0.$s: $(echo "$r" | sed -n 's/.*status: \([A-Z]*\).*/\1/p;s/^app\.sd\.lab\.[[:space:]]*[0-9]*[[:space:]]*IN[[:space:]]*A[[:space:]]*/valor /p;/timed out\|no servers/p' | tr '\n' ' ')"
+    r=$(docker exec cliente dig @172.31.0.$s app.sd.lab +norecurse +time=2 +tries=1 2>&1)
+    st=$(echo "$r" | sed -n 's/.*status: \([A-Z]*\).*/\1/p')
+    val=$(echo "$r" | awk '/^app\.sd\.lab/{print $5}')
+    if [ -z "$st" ]; then echo "    leitura direta 172.31.0.$s: sem resposta (tempo esgotado)"
+    else echo "    leitura direta 172.31.0.$s: $st valor $val"; fi
   done
   docker exec resolvedor rndc flush
   r=$(docker exec cliente dig @172.31.0.53 app.sd.lab +time=5 +tries=1)
