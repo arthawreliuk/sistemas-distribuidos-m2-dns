@@ -11,6 +11,8 @@ Entregáveis:
 - Relatório: [`relatorio/relatorio.pdf`](relatorio/relatorio.pdf) (montado de `relatorio/partes/` por `relatorio/montar.py`).
 - Evidências em imagem: [`docs/evidencias/`](docs/evidencias/) (versões curtas para os slides em `docs/evidencias/slides/`),
   geradas por `scripts/gerar_prints.py` a partir das saídas gravadas em `evidencias/`.
+- Slides: [`apresentacao/slides.pdf`](apresentacao/slides.pdf) (fontes em `apresentacao/slides/`, montados por `apresentacao/montar_slides.py`).
+- Roteiro da apresentação e da gravação do vídeo: [`apresentacao/ROTEIRO.md`](apresentacao/ROTEIRO.md).
 - Demonstração ao vivo do seminário: `./scripts/demo.sh`.
 
 ## Requisitos
@@ -84,6 +86,7 @@ diagramas/                       diagramas próprios
 docs/evidencias/                 prints das saídas dos experimentos
 resultados/                      medições brutas (CSV)
 relatorio/                       relatório (partes HTML -> relatorio.pdf)
+apresentacao/                    slides (PDF e fontes) e roteiro da apresentação
 ```
 
 ## Situação dos experimentos
