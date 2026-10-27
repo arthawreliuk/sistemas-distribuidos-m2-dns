@@ -1,0 +1,15 @@
+<section id="e9a" style="background:#f7f7f5;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">E9 — Descoberta de serviços com CoreDNS</h2>
+<div style="display:flex;gap:40px">
+<img src="/_blob/9b747cd72af5b893af4be390100cec7e" alt="Montagem: cliente consulta o resolvedor, que consulta o CoreDNS quando o cache vence; CoreDNS lê o registro de instâncias; cliente chama api1, api2 e api3" style="width:900px;height:370px;object-fit:contain;background:#ffffff">
+<p style="flex:1;font-size:28px;line-height:1.4">A instância api3 morre e sai do registro. O CoreDNS para de anunciá-la em menos de 1,4 s; o resto depende do TTL em cache.</p>
+</div>
+<table style="font-size:28px">
+<tr><th style="width:52%">Média de 5 repetições</th><th style="width:24%">TTL 5 s</th><th style="width:24%">TTL 60 s</th></tr>
+<tr><td>Consultas ao CoreDNS por minuto</td><td>12,0</td><td>1,2</td></tr>
+<tr><td>Resolvedor ainda anuncia a instância morta</td><td>3,6 s</td><td>37,2 s</td></tr>
+<tr><td>Cliente ainda tenta a instância morta</td><td>2,7 s · 2,8 falhas</td><td>36,2 s · 22,6 falhas</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5a5a5a">Cliente: ~245 consultas por minuto ao resolvedor nos dois casos · resultados/e9_*.csv</p>
+<aside>TTL baixo: clientes deixam a instância morta 10 vezes mais rápido, ao custo de 10 vezes mais consultas ao servidor de nomes. Com TTL 60 a remoção ocorreu cerca de 20 s após o cache ser preenchido, por isso os valores ficaram próximos de 37 s.</aside>
+</section>

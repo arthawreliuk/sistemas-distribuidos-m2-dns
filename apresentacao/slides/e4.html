@@ -1,0 +1,15 @@
+<section id="e4" style="background:#f7f7f5;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">E4 — Consistência eventual: a janela do cache</h2>
+<table style="font-size:30px">
+<tr><th style="width:40%">TTL restante na alteração</th><th style="width:30%">Janela com valor antigo</th><th style="width:30%">Autoritativos</th></tr>
+<tr><td>50 s</td><td>47,8 s</td><td>já atualizados</td></tr>
+<tr><td>40 s</td><td>38,2 s</td><td>já atualizados</td></tr>
+<tr><td>30 s</td><td>27,7 s</td><td>já atualizados</td></tr>
+<tr><td>20 s</td><td>17,9 s</td><td>já atualizados</td></tr>
+<tr><td>10 s</td><td>7,9 s</td><td>já atualizados</td></tr>
+</table>
+<p style="font-size:30px;line-height:1.4">Cache negativo: nome criado após ser consultado continuou <b>NXDOMAIN por 19,4 s</b> (desvio 0,3 s; TTL negativo 20 s).</p>
+<p style="font-size:30px;line-height:1.4">Duas janelas: replicação (&lt; 1 s) e cache (até um TTL). O cliente percebe a do cache.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5a5a5a">Máximo teórico: TTL 60 s + replicação 0,6 s · resultados/e4.csv</p>
+<aside>A janela ficou em média 2,1 s abaixo do TTL restante. Não há leitura das próprias escritas pelo resolvedor.</aside>
+</section>

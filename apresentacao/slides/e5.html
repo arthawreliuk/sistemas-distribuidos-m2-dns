@@ -1,0 +1,16 @@
+<section id="e5" style="background:#f7f7f5;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">E5 — Falha: não há quórum no DNS</h2>
+<table style="font-size:30px">
+<tr><th style="width:24%">Nós ativos</th><th style="width:14%">Leitura</th><th style="width:14%">Escrita</th><th style="width:48%">Observado</th></tr>
+<tr><td>ns1, ns2, ns3</td><td>sim</td><td>sim</td><td>escrita no ns1, propagada aos dois</td></tr>
+<tr><td>ns2, ns3</td><td>sim</td><td>não</td><td>secundários: REFUSED; resolvedor 1,2 s</td></tr>
+<tr><td>só ns3</td><td>sim</td><td>não</td><td>um nó responde sozinho até o expire</td></tr>
+</table>
+<div style="display:flex;gap:48px">
+<p style="flex:1;font-size:34px;line-height:1.4">N = 3 · <b>R = 1</b> · <b>W = 1</b> (sempre o primário)</p>
+<p style="flex:1;font-size:34px;line-height:1.4">R + W = 2 ≤ N: sem garantia de ler a última escrita</p>
+</div>
+<p style="font-size:30px;line-height:1.4">Leitura tolera 2 de 3 falhas. Escrita depende do primário: sem eleição, ninguém assume.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5a5a5a">docker stop ns1; docker stop ns2 · evidencias/e5</p>
+<aside>Demonstrar ao vivo: parar o ns1, ler pelo ns2 e tentar nsupdate (REFUSED). Não existe perder o quórum: não há maioria a formar.</aside>
+</section>

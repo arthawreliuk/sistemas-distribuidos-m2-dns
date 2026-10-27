@@ -1,0 +1,20 @@
+<section id="e3" style="background:#f7f7f5;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">E3 — Replicação primário → secundários</h2>
+<div style="display:flex;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#ffffff;padding:48px;border:2px solid #1c1c1c">
+<p style="font-size:32px;font-weight:700">Com NOTIFY</p>
+<p style="font-size:120px;font-weight:700;line-height:1.1">0,34 s</p>
+<p style="font-size:28px;color:#4a4a4a">média, n = 10 · desvio 0,27 s</p>
+<p style="font-size:28px;color:#4a4a4a">ns2 0,09 s · ns3 0,59 s</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#e9e9e6;padding:48px;border:2px solid #1c1c1c">
+<p style="font-size:32px;font-weight:700">Sem NOTIFY (só refresh de 30 s)</p>
+<p style="font-size:120px;font-weight:700;line-height:1.1">16,2 s</p>
+<p style="font-size:28px;color:#4a4a4a">média, n = 10 · desvio 2,6 s</p>
+<p style="font-size:28px;color:#4a4a4a">mínimo 10,3 s · máximo 20,4 s</p>
+</div>
+</div>
+<p style="font-size:30px;line-height:1.4">Primário-backup <b>assíncrono</b>, iniciado pelo secundário. Achado: o BIND envia no máximo um NOTIFY da zona a cada 5 s (notify-delay).</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5a5a5a">5 repetições por cenário, sonda a cada 100 ms · resultados/e3.csv</p>
+<aside>Propagação medida do rndc reload até o secundário responder o valor novo. A primeira série, com repetições a cada 2 s, foi refeita: o NOTIFY saía só a cada 5 s.</aside>
+</section>

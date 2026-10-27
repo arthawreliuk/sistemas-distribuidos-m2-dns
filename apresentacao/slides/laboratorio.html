@@ -1,0 +1,13 @@
+<section id="laboratorio" style="background:#f7f7f5;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:28px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">Laboratório: 5 contêineres, 2 redes (E1)</h2>
+<div style="display:flex;gap:40px">
+<img src="/_blob/37e2fab0794642a41580c1a23b19567e" alt="Topologia: ns1, ns2 e ns3 nas redes interna e de clientes; resolvedor e cliente na rede de clientes" style="width:1060px;height:660px;object-fit:contain;background:#ffffff">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="font-size:28px;line-height:1.4">BIND 9.18.49 em Alpine 3.20; Docker Compose; cerca de 104 MiB no total.</p>
+<p style="font-size:28px;line-height:1.4">Zona <b>sd.lab</b>: TTL 60 s, refresh 30 s, retry 10 s, expire 300 s, TTL negativo 20 s.</p>
+<p style="font-size:28px;line-height:1.4">E1: ns2 e ns3 receberam a zona por <b>AXFR</b> pela rede interna; os três respondem o serial <b>2026101401</b> com <b>aa</b>.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5a5a5a">Sistemas Distribuídos · UNIVALI · 2026/2</p>
+<aside>Rede interna só para replicação (NOTIFY e transferência); rede de clientes para consultas. Isso permite a partição do E6. Papéis: ns1 primário, ns2 e ns3 secundários, resolvedor com cache, cliente.</aside>
+</section>

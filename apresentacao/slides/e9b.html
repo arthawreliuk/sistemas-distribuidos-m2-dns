@@ -1,0 +1,14 @@
+<section id="e9b" style="background:#f7f7f5;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">E9 — Relação com o Kubernetes</h2>
+<table style="font-size:30px">
+<tr><th style="width:40%">No laboratório</th><th style="width:60%">No Kubernetes</th></tr>
+<tr><td>api.servicos.lab</td><td>Service: nome estável</td></tr>
+<tr><td>arquivo da zona (registro)</td><td>EndpointSlices no etcd (consistente, Raft)</td></tr>
+<tr><td>CoreDNS + plugin file</td><td>CoreDNS + plugin kubernetes</td></tr>
+<tr><td>cache do resolvedor (TTL)</td><td>cache 30 no Corefile padrão</td></tr>
+<tr><td>IPs das instâncias na resposta</td><td>Service headless (StatefulSet); Service comum responde um IP virtual e o kube-proxy distribui</td></tr>
+</table>
+<p style="font-size:30px;line-height:1.4">O registro é consistente; a janela em que o cliente usa uma instância morta vem só do cache de DNS.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5a5a5a">Unidade 4 · Kubernetes: DNS for Services and Pods · CoreDNS manual</p>
+<aside>Compromisso: atualização rápida contra custo de consultas. O IP virtual do Service tira o TTL do caminho para serviços comuns.</aside>
+</section>

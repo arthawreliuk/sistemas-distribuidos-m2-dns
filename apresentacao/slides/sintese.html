@@ -1,0 +1,16 @@
+<section id="sintese" style="background:#e9e9e6;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">Quadro-síntese</h2>
+<table style="font-size:28px">
+<tr><th style="width:26%">Aspecto</th><th style="width:74%">DNS (evidência)</th></tr>
+<tr><td>Arquitetura</td><td>Cliente-servidor, espaço de nomes hierárquico (E1, E2)</td></tr>
+<tr><td>Replicação</td><td>Primário-backup assíncrono, N = 3; só o primário escreve (E3)</td></tr>
+<tr><td>Consistência</td><td>Eventual: janela de até um TTL no resolvedor (E4)</td></tr>
+<tr><td>Quórum</td><td>Não há: R = 1, W = 1; leitura tolera 2 falhas (E5)</td></tr>
+<tr><td>Liderança</td><td>Primário estático, sem eleição (E5, E8)</td></tr>
+<tr><td>Ordem</td><td>Serial do SOA, monotônico (E8)</td></tr>
+<tr><td>Partição</td><td>A até o expire; depois SERVFAIL (E6)</td></tr>
+<tr><td>Recuperação</td><td>Transferência da zona inteira, sem log (E7)</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#4a4a4a">Relatório completo e repositório: evidências, scripts e medições</p>
+<aside>Fechamento: o DNS troca consistência por escala e disponibilidade, e limita a desatualização com NOTIFY, refresh, TTL e expire.</aside>
+</section>

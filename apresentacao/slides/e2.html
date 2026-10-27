@@ -1,0 +1,14 @@
+<section id="e2" style="background:#f7f7f5;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:28px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">E2 — Caminho de uma leitura e de uma escrita</h2>
+<div style="display:flex;gap:40px">
+<img src="/_blob/d0ad25073f232014c6c2e9b6533ecacf" alt="Diagrama de sequência: leitura pelo resolvedor com cache; escrita no primário com NOTIFY, pedido de IXFR e transferência completa para ns2 e ns3" style="width:1000px;height:680px;object-fit:contain;background:#ffffff">
+<div style="flex:1;display:flex;flex-direction:column;gap:22px">
+<p style="font-size:28px;line-height:1.4">Resolvedor: <b>ra</b>, sem aa; 2ª consulta sai do cache (TTL 60 → 58).</p>
+<p style="font-size:28px;line-height:1.4">Autoritativo: <b>aa</b>.</p>
+<p style="font-size:28px;line-height:1.4">Escrita só no primário. NOTIFY em 3 ms; o secundário pede IXFR e recebe a zona inteira (AXFR).</p>
+<p style="font-size:28px;line-height:1.4">Após a escrita: autoritativos com 10.0.0.3; resolvedor ainda com 10.0.0.2.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5a5a5a">Logs reais do BIND, 26/10/2026 · demonstração ao vivo: scripts/demo.sh</p>
+<aside>Quem recebe: resolvedor (leitura) ou primário (escrita). Quem decide: o primário. Quem replica: o secundário pede a transferência; o NOTIFY só avisa. Quem responde: qualquer autoritativo ou o cache.</aside>
+</section>

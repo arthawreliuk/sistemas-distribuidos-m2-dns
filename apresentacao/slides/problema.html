@@ -1,0 +1,17 @@
+<section id="problema" style="background:#f7f7f5;color:#1c1c1c;font-family:Arial, Helvetica, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-size:64px;font-weight:700;line-height:1.1">O problema: achar recursos sem um diretório central</h2>
+<div style="display:flex;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#ffffff;padding:40px;border:2px solid #1c1c1c">
+<h3 style="font-size:40px;font-weight:700">Antes</h3>
+<p style="font-size:32px;line-height:1.4">Um único arquivo de hosts, mantido de forma central e copiado para todas as máquinas. Não acompanhou o crescimento da rede.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#ffffff;padding:40px;border:2px solid #1c1c1c">
+<h3 style="font-size:40px;font-weight:700">DNS</h3>
+<p style="font-size:32px;line-height:1.4">Banco de dados hierárquico, distribuído e replicado. Cada zona é administrada de forma independente; a autoridade é delegada por registros NS.</p>
+</div>
+</div>
+<p style="font-size:32px;line-height:1.4">Artigo seminal: <b>Mockapetris e Dunlap, “Development of the Domain Name System”, ACM SIGCOMM 1988</b>. Especificação: RFC 1034 e 1035.</p>
+<p style="font-size:32px;line-height:1.4">Uso real: toda a Internet (web, e-mail, CDN) e, dentro de clusters, descoberta de serviços (CoreDNS no Kubernetes).</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5a5a5a">Sistemas Distribuídos · UNIVALI · 2026/2</p>
+<aside>Bloco 1 (1 min). Problema: traduzir nomes estáveis em endereços que mudam, em escala mundial, sem um diretório central. Transparência de localização e de replicação para o usuário.</aside>
+</section>
